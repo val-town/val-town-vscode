@@ -1,3 +1,7 @@
+# Val Town - VS Code Integration
+
+![screenshot of the extension](./img/screenshot.png)
+
 ## Installation
 
 ```sh
