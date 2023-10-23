@@ -9,18 +9,20 @@ import { loadToken } from "./secrets";
 import { registerCommands } from "./commands";
 
 export async function activate(context: vscode.ExtensionContext) {
+  // await context.secrets.delete("valtown.token");
+
   const config = vscode.workspace.getConfiguration("valtown")
   const endpoint = config.get<string>("endpoint", "https://api.val.town");
-
 
   let token = await loadToken(context);
   if (token) {
     await vscode.commands.executeCommand("setContext", "valtown.ready", true)
   } else {
-    const input = await vscode.window.showInformationMessage("The ValTown extension requires a token to be provided.", "Set Token")
-    if (input === "Set Token") {
-      await vscode.commands.executeCommand("valtown.setToken")
-    }
+    vscode.window.showInformationMessage("The ValTown extension requires a token to be provided.", "Set Token").then((value) => {
+      if (value === "Set Token") {
+        vscode.commands.executeCommand("valtown.setToken")
+      }
+    })
   }
 
   const client = new ValtownClient(endpoint, token);

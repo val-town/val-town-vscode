@@ -1,6 +1,8 @@
-Author your vals from the confort of your favourite editor.
+## Installation
 
-## Features
-
-- Sidebar view for managing your vals
-- Edit vals from editor
+```sh
+npm install -g @vscode/vsce # if you don't have it already
+npm install # install dependencies
+vsce package # generate .vsix file
+code --install-extension valtown-0.0.1.vsix # install extension
+```
