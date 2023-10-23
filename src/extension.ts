@@ -9,10 +9,14 @@ import { loadToken } from "./secrets";
 import { registerCommands } from "./commands";
 
 export async function activate(context: vscode.ExtensionContext) {
-  // await context.secrets.delete("valtown.token");
+  await context.secrets.delete("valtown.token");
+  // set output channel
+  const outputChannel = vscode.window.createOutputChannel("Val Town");
+  context.subscriptions.push(outputChannel);
 
   const config = vscode.workspace.getConfiguration("valtown")
   const endpoint = config.get<string>("endpoint", "https://api.val.town");
+  outputChannel.appendLine(`Using endpoint: ${endpoint}`)
 
   let token = await loadToken(context);
   if (token) {
@@ -51,7 +55,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
 
 
+  outputChannel.appendLine("Registering tree view");
   registerTreeView(context, client);
+  outputChannel.appendLine("Registering file system provider");
   registerFileSystemProvider(client);
+  outputChannel.appendLine("Registering commands");
   registerCommands(context, client);
+  outputChannel.appendLine("ValTown extension activated");
 }
