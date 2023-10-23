@@ -1,0 +1,237 @@
+{
+	"name": "valtown",
+	"displayName": "Val Town",
+	"description": "VS Code integration for Val Town",
+	"version": "0.0.1",
+	"publisher": "pomdtr",
+	"private": true,
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Microsoft/vscode-extension-samples"
+	},
+	"engines": {
+		"vscode": "^1.74.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onFileSystem:val"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "valtown",
+					"title": "Val Town",
+					"icon": "resources/activity.svg"
+				}
+			]
+		},
+		"views": {
+			"valtown": [
+				{
+					"id": "valtown",
+					"name": "Val Town"
+				}
+			]
+		},
+		"viewsWelcome": [
+			{
+				"view": "valtown",
+				"contents": "Please set your Val Town token to use this extension.\n[Set Token](command:valtown.setToken)",
+				"when": "!valtown.ready"
+			}
+		],
+		"commands": [
+			{
+				"command": "valtown.createVal",
+				"title": "Create Val",
+				"category": "Val Town",
+				"icon": "$(new-file)"
+			},
+			{
+				"command": "valtown.deleteVal",
+				"title": "Delete Val",
+				"category": "Val Town",
+				"icon": "$(trash)"
+			},
+			{
+				"command": "valtown.refresh",
+				"title": "Refresh",
+				"category": "Val Town",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "valtown.openInBrowser",
+				"title": "Open Val in Browser",
+				"icon": "$(globe)"
+			},
+			{
+				"command": "valtown.openVal",
+				"title": "Open Val",
+				"icon": "$(file-code)"
+			},
+			{
+				"command": "valtown.copyWebEndpoint",
+				"title": "Copy Web Endpoint"
+			},
+			{
+				"command": "valtown.copyLink",
+				"title": "Copy Link"
+			},
+			{
+				"command": "valtown.copyExpressEndpoint",
+				"title": "Copy Express Endpoint"
+			},
+			{
+				"command": "valtown.copyEmbed",
+				"title": "Copy Embed"
+			},
+			{
+				"command": "valtown.copyEmailAddress",
+				"title": "Copy Email"
+			},
+			{
+				"command": "valtown.openReadme",
+				"title": "View Readme",
+				"icon": "$(file-text)"
+			},
+			{
+				"command": "valtown.setToken",
+				"category": "Val Town",
+				"title": "Set Token"
+			}
+		],
+		"configuration": [
+			{
+				"title": "Val Town",
+				"type": "object",
+				"properties": {
+					"valtown.endpoint": {
+						"type": "string",
+						"default": "https://api.val.town"
+					}
+				}
+			}
+		],
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "valtown.setToken"
+				}
+			],
+			"editor/title": [
+				{
+					"command": "valtown.openReadme",
+					"group": "navigation@1",
+					"when": "resourceScheme == val && resourceLangId == typescript"
+				},
+				{
+					"command": "valtown.openVal",
+					"group": "navigation@1",
+					"when": "resourceScheme == val && resourceLangId == markdown"
+				},
+				{
+					"command": "valtown.openInBrowser",
+					"group": "navigation@2",
+					"when": "resourceScheme == val"
+				}
+			],
+			"view/title": [
+				{
+					"command": "valtown.createVal",
+					"group": "navigation@1",
+					"when": "view == valtown && valtown.ready"
+				},
+				{
+					"command": "valtown.refresh",
+					"group": "navigation@2",
+					"when": "view == valtown && valtown.ready"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "valtown.openVal",
+					"group": "navigation@1",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.openInBrowser",
+					"group": "navigation@2",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.openReadme",
+					"group": "navigation@3",
+					"when": "viewItem == val"
+				},
+				{
+					"submenu": "valtown.copy",
+					"group": "navigation@4",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.deleteVal",
+					"group": "navigation@5",
+					"when": "viewItem == val"
+				}
+			],
+			"valtown.copy": [
+				{
+					"command": "valtown.copyLink",
+					"group": "navigation@1",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.copyWebEndpoint",
+					"group": "navigation@2",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.copyExpressEndpoint",
+					"group": "navigation@3",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.copyEmbed",
+					"group": "navigation@5",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.copyEmailAddress",
+					"group": "navigation@6",
+					"when": "viewItem == val"
+				}
+			]
+		},
+		"submenus": [
+			{
+				"id": "valtown.copy",
+				"label": "Copy"
+			}
+		]
+	},
+	"scripts": {
+		"fetch-openapi": "node scripts/fetch-openapi.mjs",
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"lint": "eslint \"src/**/*.ts\""
+	},
+	"devDependencies": {
+		"@types/node": "^16.18.34",
+		"@types/vscode": "^1.73.0",
+		"@typescript-eslint/eslint-plugin": "^6.7.0",
+		"@typescript-eslint/parser": "^6.7.0",
+		"eslint": "^8.26.0",
+		"typescript": "^5.2.2",
+		"yaml": "^2.3.3"
+	},
+	"dependencies": {
+		"undici": "^5.26.5",
+		"unique-names-generator": "^4.7.1"
+	}
+}
