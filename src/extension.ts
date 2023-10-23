@@ -13,12 +13,6 @@ export async function activate(context: vscode.ExtensionContext) {
   const outputChannel = vscode.window.createOutputChannel("Val Town");
   context.subscriptions.push(outputChannel);
 
-  if (context.extensionMode === vscode.ExtensionMode.Development) {
-    console.debug("ValTown extension activated in development mode");
-    // clear token on startup in development mode
-    await context.secrets.delete("valtown.token");
-  }
-
   const config = vscode.workspace.getConfiguration("valtown")
   const endpoint = config.get<string>("endpoint", "https://api.val.town");
   outputChannel.appendLine(`Using endpoint: ${endpoint}`)

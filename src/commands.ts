@@ -59,6 +59,19 @@ export function registerCommands(context: vscode.ExtensionContext, client: Valto
 		);
 	});
 
+	vscode.commands.registerCommand("valtown.copyAsJSON", async (arg) => {
+		const valID = extractValID(arg);
+		const val = await client.getVal(valID);
+		vscode.env.clipboard.writeText(JSON.stringify(val, null, 2));
+	});
+
+	vscode.commands.registerCommand("valtown.copyImport", async (arg) => {
+		const valID = extractValID(arg);
+		const val = await client.getVal(valID);
+		vscode.env.clipboard.writeText(`import { ${val.name} } from "https://esm.town/v/${val.author.username.slice(1)}/${val.name}"`);
+		vscode.window.showInformationMessage(`Import statement copied to clipboard`);
+	})
+
 	vscode.commands.registerCommand("valtown.deleteVal", async (arg) => {
 		const valID = extractValID(arg);
 		await client.deleteVal(valID);
@@ -86,6 +99,7 @@ export function registerCommands(context: vscode.ExtensionContext, client: Valto
 			vscode.env.clipboard.writeText(
 				`https://${val.author?.username?.slice(1)}-${val.name}.web.val.run`,
 			);
+			vscode.window.showInformationMessage(`Val web endpoint copied to clipboard`);
 		},
 	);
 
@@ -96,6 +110,7 @@ export function registerCommands(context: vscode.ExtensionContext, client: Valto
 			vscode.env.clipboard.writeText(
 				`https://${val.author?.username?.slice(1)}-${val.name}.express.val.run`,
 			);
+			vscode.window.showInformationMessage(`Val express endpoint copied to clipboard`);
 		},
 	);
 
@@ -106,6 +121,7 @@ export function registerCommands(context: vscode.ExtensionContext, client: Valto
 			vscode.env.clipboard.writeText(
 				`https://val.town/v/${val.author?.username?.slice(1)}.${val.name}`,
 			);
+			vscode.window.showInformationMessage(`Val link copied to clipboard`);
 		},
 	);
 
@@ -117,6 +133,7 @@ export function registerCommands(context: vscode.ExtensionContext, client: Valto
 			vscode.env.clipboard.writeText(
 				`https://val.town/embed/${val.author?.username?.slice(1)}.${val.name}`,
 			);
+			vscode.window.showInformationMessage(`Val embed link copied to clipboard`);
 		},
 	)
 
@@ -125,7 +142,8 @@ export function registerCommands(context: vscode.ExtensionContext, client: Valto
 		async (arg) => {
 			const valID = extractValID(arg);
 			const val = await client.getVal(valID);
-			vscode.env.clipboard.writeText(`${val.author?.username?.slice(1)}.${val.name}@val.town`);
+			await vscode.env.clipboard.writeText(`${val.author?.username?.slice(1)}.${val.name}@val.town`);
+			vscode.window.showInformationMessage(`Val email address copied to clipboard`);
 		},
 	);
 

@@ -12,28 +12,27 @@ class ValtownFileSystemProvider implements vscode.FileSystemProvider {
       vscode.FileChangeEvent[]
     >().event;
 
-  readFile(uri: vscode.Uri): Uint8Array | Thenable<Uint8Array> {
+  async readFile(uri: vscode.Uri) {
     const filename = uri.path.split("/").pop() || "";
+    const val = await this.client.getVal(uri.authority);
 
-    if (!uri.authority) {
-      return new Uint8Array();
+    if (filename == "mod.ts") {
+      return new TextEncoder().encode(val.code || "")
+    } else if (filename === "README.md") {
+      return new TextEncoder().encode(val.readme || "")
+    } else if (filename === "val.json") {
+      return new TextEncoder().encode(JSON.stringify(val, null, 2))
     }
-
-    return this.client.getVal(uri.authority).then((val) => {
-      if (filename.endsWith(".ts")) {
-        return new TextEncoder().encode(val.code || "");
-      } else if (filename.endsWith(".md")) {
-        return new TextEncoder().encode(val.readme || "");
-      } else {
-        return new Uint8Array();
-      }
-    });
+    else {
+      throw new Error("Unknown file type");
+    }
   }
 
   delete(
     uri: vscode.Uri,
   ): void | Thenable<void> {
-    return this.client.deleteVal(uri.authority);
+    this.client.deleteVal(uri.authority);
+    vscode.commands.executeCommand("valtown.refresh");
   }
 
   rename(
@@ -49,7 +48,7 @@ class ValtownFileSystemProvider implements vscode.FileSystemProvider {
 
     return this.client.getVal(uri.authority).then((val) => {
       let permission: vscode.FilePermission | undefined;
-      if (filename === "README.md") {
+      if (filename === "README.md" || filename === "val.json") {
         permission = vscode.FilePermission.Readonly;
       }
 
@@ -78,7 +77,7 @@ class ValtownFileSystemProvider implements vscode.FileSystemProvider {
       new TextDecoder().decode(content),
     );
 
-    await vscode.commands.executeCommand("valtown.refresh");
+    vscode.commands.executeCommand("valtown.refresh");
   }
 
   watch(
@@ -98,6 +97,7 @@ class ValtownFileSystemProvider implements vscode.FileSystemProvider {
   readDirectory(
     uri: vscode.Uri,
   ): [string, vscode.FileType][] | Thenable<[string, vscode.FileType][]> {
+    vscode.window.showErrorMessage("Cannot read directories in ValTown");
     return [];
   }
 }

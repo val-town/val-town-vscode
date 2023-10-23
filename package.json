@@ -75,6 +75,14 @@
 				"icon": "$(file-code)"
 			},
 			{
+				"command": "valtown.copyAsJSON",
+				"title": "Copy as JSON"
+			},
+			{
+				"command": "valtown.copyImport",
+				"title": "Copy Import"
+			},
+			{
 				"command": "valtown.copyWebEndpoint",
 				"title": "Copy Web Endpoint"
 			},
@@ -203,6 +211,16 @@
 				{
 					"command": "valtown.copyEmailAddress",
 					"group": "navigation@6",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.copyAsJSON",
+					"group": "navigation@7",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.copyImport",
+					"group": "navigation@8",
 					"when": "viewItem == val"
 				}
 			]
