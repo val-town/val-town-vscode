@@ -1,11 +1,11 @@
 import * as vscode from "vscode";
 import { saveToken } from "./secrets";
-import { ValtownClient } from "./client";
+import { FullVal, ValtownClient } from "./client";
 
 export function registerCommands(context: vscode.ExtensionContext, client: ValtownClient) {
 	function extractValID(arg: any): string {
 		if (arg.id) {
-			return arg.id;
+			return arg.id.split("/").pop()
 		}
 
 		if (arg.authority) {
@@ -14,6 +14,8 @@ export function registerCommands(context: vscode.ExtensionContext, client: Valto
 
 		return ""
 	}
+
+
 
 	vscode.commands.registerCommand("valtown.setToken", async (token?: string) => {
 		if (!token) {
@@ -72,6 +74,19 @@ export function registerCommands(context: vscode.ExtensionContext, client: Valto
 		vscode.window.showInformationMessage(`Import statement copied to clipboard`);
 	})
 
+	vscode.commands.registerCommand("valtown.copyID", async (arg) => {
+		const valID = extractValID(arg);
+		vscode.env.clipboard.writeText(valID);
+		vscode.window.showInformationMessage(`Val ID copied to clipboard`);
+	});
+
+	vscode.commands.registerCommand("valtown.copyRunEndpoint", async (arg) => {
+		const valID = extractValID(arg);
+		const val = await client.getVal(valID);
+		vscode.env.clipboard.writeText(`https://api.val.town/v1/run/${val.author?.username?.slice(1)}.${val.name}`);
+		vscode.window.showInformationMessage(`Val run endpoint copied to clipboard`);
+	})
+
 	vscode.commands.registerCommand("valtown.deleteVal", async (arg) => {
 		const valID = extractValID(arg);
 		await client.deleteVal(valID);
@@ -85,7 +100,7 @@ export function registerCommands(context: vscode.ExtensionContext, client: Valto
 			const val = await client.getVal(valID);
 			await vscode.env.openExternal(
 				vscode.Uri.parse(
-					`https://val.town/v/${val.author?.username?.slice(1)}.${val.name}`,
+					`https://val.town/v/${val.author?.username?.slice(1)}/${val.name}`,
 				),
 			);
 		},
@@ -117,13 +132,26 @@ export function registerCommands(context: vscode.ExtensionContext, client: Valto
 	vscode.commands.registerCommand(
 		"valtown.copyLink",
 		async (arg) => {
-			const val = await client.getVal(arg);
+			const valID = extractValID(arg);
+			const val = await client.getVal(valID);
 			vscode.env.clipboard.writeText(
-				`https://val.town/v/${val.author?.username?.slice(1)}.${val.name}`,
+				`https://val.town/v/${val.author?.username?.slice(1)}/${val.name}`,
 			);
 			vscode.window.showInformationMessage(`Val link copied to clipboard`);
 		},
 	);
+
+	vscode.commands.registerCommand(
+		"valtown.openLogs",
+		async (arg) => {
+			const valID = extractValID(arg);
+			const val = await client.getVal(valID);
+			await vscode.env.openExternal(
+				vscode.Uri.parse(
+					`https://val.town/v/${val.author?.username?.slice(1)}/${val.name}/evaluations`,
+				),
+			);
+		})
 
 	vscode.commands.registerCommand(
 		"valtown.copyEmbed",
@@ -134,6 +162,22 @@ export function registerCommands(context: vscode.ExtensionContext, client: Valto
 				`https://val.town/embed/${val.author?.username?.slice(1)}.${val.name}`,
 			);
 			vscode.window.showInformationMessage(`Val embed link copied to clipboard`);
+		},
+	)
+
+	vscode.commands.registerCommand(
+		"valtown.togglePinned",
+		async (arg) => {
+			const valID = extractValID(arg);
+			const val = await client.getVal(valID);
+			const pinnedVals = context.globalState.get<Record<string, FullVal>>("valtown.pins", {});
+			if (pinnedVals[valID]) {
+				delete pinnedVals[valID];
+			} else {
+				pinnedVals[valID] = val;
+			}
+			await context.globalState.update("valtown.pins", pinnedVals);
+			await vscode.commands.executeCommand("valtown.refresh");
 		},
 	)
 

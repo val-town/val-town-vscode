@@ -20,12 +20,6 @@ export async function activate(context: vscode.ExtensionContext) {
   let token = await loadToken(context);
   if (token) {
     await vscode.commands.executeCommand("setContext", "valtown.ready", true)
-  } else {
-    vscode.window.showInformationMessage("The ValTown extension requires a token to be provided.", "Set Token").then((value) => {
-      if (value === "Set Token") {
-        vscode.commands.executeCommand("valtown.setToken")
-      }
-    })
   }
 
   const client = new ValtownClient(endpoint, token);

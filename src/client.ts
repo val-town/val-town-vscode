@@ -1,5 +1,5 @@
 import { RequestInit, fetch } from "undici"
-import { adjectives, animals, colors, uniqueNamesGenerator } from "unique-names-generator"
+import { animals, colors, uniqueNamesGenerator } from "unique-names-generator"
 
 type BaseVal = {
   id: string
@@ -13,6 +13,10 @@ type BaseVal = {
   }
 }
 
+export type FullVal = BaseVal & {
+  readme: string,
+}
+
 type Paginated<T> = {
   data: T[],
   links: {
@@ -22,9 +26,6 @@ type Paginated<T> = {
   }
 }
 
-type FullVal = BaseVal & {
-  readme: string,
-}
 
 export class ValtownClient {
   private _uid: string | undefined;
@@ -75,10 +76,9 @@ export class ValtownClient {
 
   async createVal() {
     let name = uniqueNamesGenerator({
-      dictionaries: [adjectives, colors, animals],
+      dictionaries: [colors, animals],
       separator: "",
       style: "capital",
-      length: 3,
     });
     name = name[0].toLowerCase() + name.slice(1);
 
@@ -100,7 +100,6 @@ export class ValtownClient {
   }
 
   async listLikedVals() {
-    const uid = await this.uid();
     let endpoint = `${this.endpoint}/v1/me/likes?limit=100`;
     const vals: BaseVal[] = [];
 
@@ -111,7 +110,7 @@ export class ValtownClient {
       }
 
       const body = await resp.json() as Paginated<BaseVal>;
-      vals.push(...body.data.filter((val) => val.author.id !== uid));
+      vals.push(...body.data);
       if (!body.links.next) {
         break
       }

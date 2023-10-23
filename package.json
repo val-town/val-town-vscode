@@ -79,6 +79,14 @@
 				"title": "Copy as JSON"
 			},
 			{
+				"command": "valtown.copyID",
+				"title": "Copy ID"
+			},
+			{
+				"command": "valtown.copyRunEndpoint",
+				"title": "Copy Run Endpoint"
+			},
+			{
 				"command": "valtown.copyImport",
 				"title": "Copy Import"
 			},
@@ -111,6 +119,16 @@
 				"command": "valtown.setToken",
 				"category": "Val Town",
 				"title": "Set Token"
+			},
+			{
+				"command": "valtown.openLogs",
+				"category": "Val Town",
+				"title": "Open Logs"
+			},
+			{
+				"command": "valtown.togglePinned",
+				"category": "Val Town",
+				"title": "Toggle Pinned"
 			}
 		],
 		"configuration": [
@@ -167,8 +185,23 @@
 					"when": "viewItem == val"
 				},
 				{
-					"command": "valtown.deleteVal",
+					"submenu": "valtown.endpoints",
 					"group": "navigation@4",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.openLogs",
+					"group": "navigation@5",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.togglePinned",
+					"group": "navigation@6",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.deleteVal",
+					"group": "navigation@8",
 					"when": "viewItem == val"
 				}
 			],
@@ -179,33 +212,45 @@
 					"when": "viewItem == val"
 				},
 				{
-					"command": "valtown.copyWebEndpoint",
+					"command": "valtown.copyImport",
 					"group": "navigation@2",
 					"when": "viewItem == val"
 				},
 				{
-					"command": "valtown.copyExpressEndpoint",
+					"command": "valtown.copyEmbed",
 					"group": "navigation@3",
 					"when": "viewItem == val"
 				},
 				{
-					"command": "valtown.copyEmbed",
-					"group": "navigation@5",
-					"when": "viewItem == val"
-				},
-				{
-					"command": "valtown.copyEmailAddress",
-					"group": "navigation@6",
+					"command": "valtown.copyID",
+					"group": "navigation@4",
 					"when": "viewItem == val"
 				},
 				{
 					"command": "valtown.copyAsJSON",
-					"group": "navigation@7",
+					"group": "navigation@5",
+					"when": "viewItem == val"
+				}
+			],
+			"valtown.endpoints": [
+				{
+					"command": "valtown.copyRunEndpoint",
+					"group": "navigation@1",
 					"when": "viewItem == val"
 				},
 				{
-					"command": "valtown.copyImport",
-					"group": "navigation@8",
+					"command": "valtown.copyExpressEndpoint",
+					"group": "navigation@2",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.copyWebEndpoint",
+					"group": "navigation@3",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.copyEmailAddress",
+					"group": "navigation@4",
 					"when": "viewItem == val"
 				}
 			]
@@ -214,6 +259,10 @@
 			{
 				"id": "valtown.copy",
 				"label": "Copy"
+			},
+			{
+				"id": "valtown.endpoints",
+				"label": "Endpoints"
 			}
 		]
 	},

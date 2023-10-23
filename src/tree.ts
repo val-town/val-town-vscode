@@ -1,14 +1,18 @@
 import * as vscode from "vscode";
-import { ValtownClient } from "./client";
+import { FullVal, ValtownClient } from "./client";
 
-export function registerTreeView(context: vscode.ExtensionContext, client: ValtownClient) {
+export async function registerTreeView(context: vscode.ExtensionContext, client: ValtownClient) {
   const tree = new ValTownTreeView(client);
+  const pins = await context.globalState.get<Record<string, FullVal>>("valtown.pins", {});
+  tree.pins = Object.values(pins);
   context.subscriptions.push(vscode.window.createTreeView("valtown", {
     treeDataProvider: tree,
     showCollapseAll: true,
   }))
 
   context.subscriptions.push(vscode.commands.registerCommand("valtown.refresh", async () => {
+    const pins = await context.globalState.get<Record<string, FullVal>>("valtown.pins", {});
+    tree.pins = Object.values(pins);
     tree.refresh();
   }))
 
@@ -32,6 +36,7 @@ export class ValTownTreeView
 
   private _onDidChangeTreeData: vscode.EventEmitter<vscode.TreeItem | undefined | null | void> = new vscode.EventEmitter<vscode.TreeItem | undefined | null | void>();
   readonly onDidChangeTreeData: vscode.Event<vscode.TreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
+  public pins: FullVal[] = [];
 
   refresh() {
     this._onDidChangeTreeData.fire();
@@ -45,24 +50,50 @@ export class ValTownTreeView
     }
 
     if (!element) {
+      const pinned = new vscode.TreeItem(
+        "Pinned Vals",
+        this.pins.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None,
+      )
+      pinned.iconPath = new vscode.ThemeIcon("pinned");
       const home = new vscode.TreeItem(
-        "Home",
+        "Home Vals",
         vscode.TreeItemCollapsibleState.Expanded,
       )
       home.iconPath = new vscode.ThemeIcon("home");
       const likes = new vscode.TreeItem(
-        "Likes",
+        "Liked Vals",
         vscode.TreeItemCollapsibleState.Collapsed,
       )
       likes.iconPath = new vscode.ThemeIcon("heart");
       return [
+        pinned,
         home,
         likes,
       ];
     }
 
     switch (element.label) {
-      case "Home":
+      case "Pinned Vals":
+        return Object.values(this.pins).map((val) => {
+          const treeItem = new vscode.TreeItem(
+            `${val.author.username}/${val.name}`,
+            vscode.TreeItemCollapsibleState.None,
+          );
+          treeItem.id = `/pins/${val.id}`;
+          treeItem.description = `v${val.version}`;
+          treeItem.iconPath = valIcon(val.privacy);
+          treeItem.contextValue = "val";
+          treeItem.command = {
+            command: "valtown.openVal",
+            title: "Open Val",
+            arguments: [
+              { id: val.id },
+            ],
+          };
+
+          return treeItem;
+        });
+      case "Home Vals":
         return this.client.listMyVals().then((vals) => {
           if (!vals) {
             return [];
@@ -73,7 +104,7 @@ export class ValTownTreeView
               `${val.name}`,
               vscode.TreeItemCollapsibleState.None,
             );
-            treeItem.id = val.id;
+            treeItem.id = `/home/${val.id}`;
             treeItem.description = `v${val.version}`;
             treeItem.iconPath = valIcon(val.privacy);
             treeItem.contextValue = "val";
@@ -89,7 +120,7 @@ export class ValTownTreeView
           });
         });
 
-      case "Likes":
+      case "Liked Vals":
         return this.client.listLikedVals().then((vals) => {
           if (!vals) {
             return [];
@@ -100,7 +131,7 @@ export class ValTownTreeView
               `${val.author.username}/${val.name}`,
               vscode.TreeItemCollapsibleState.None,
             );
-            treeItem.id = `${val.id}`;
+            treeItem.id = `/likes/${val.id}`;
             treeItem.description = `v${val.version}`;
             treeItem.iconPath = valIcon(val.privacy);
             treeItem.contextValue = "val";
