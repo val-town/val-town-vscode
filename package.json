@@ -133,16 +133,6 @@
 			],
 			"editor/title": [
 				{
-					"command": "valtown.openReadme",
-					"group": "navigation@1",
-					"when": "resourceScheme == val && resourceLangId == typescript"
-				},
-				{
-					"command": "valtown.openVal",
-					"group": "navigation@1",
-					"when": "resourceScheme == val && resourceLangId == markdown"
-				},
-				{
 					"command": "valtown.openInBrowser",
 					"group": "navigation@2",
 					"when": "resourceScheme == val"
@@ -172,18 +162,13 @@
 					"when": "viewItem == val"
 				},
 				{
-					"command": "valtown.openReadme",
+					"submenu": "valtown.copy",
 					"group": "navigation@3",
 					"when": "viewItem == val"
 				},
 				{
-					"submenu": "valtown.copy",
-					"group": "navigation@4",
-					"when": "viewItem == val"
-				},
-				{
 					"command": "valtown.deleteVal",
-					"group": "navigation@5",
+					"group": "navigation@4",
 					"when": "viewItem == val"
 				}
 			],
