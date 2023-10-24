@@ -53,6 +53,26 @@ export function registerCommands(context: vscode.ExtensionContext, client: Valto
 		vscode.commands.executeCommand("valtown.refresh");
 	});
 
+	vscode.commands.registerCommand("valtown.viewReadme", async (arg) => {
+		let valID: string
+		if (arg) {
+			valID = extractValID(arg);
+		} else {
+			if (!(vscode.window.activeTextEditor?.document.uri.scheme === "val")) {
+				return
+			}
+			valID = vscode.window.activeTextEditor?.document.uri.authority
+		}
+
+		const val = await client.getVal(valID);
+
+		vscode.commands.executeCommand(
+			"vscode.openWith",
+			vscode.Uri.parse(`val://${valID}/${val.author?.username?.slice(1)}/${val.name}/README.md`),
+			"vscode.markdown.preview.editor"
+		)
+	});
+
 	vscode.commands.registerCommand("valtown.copyAsJSON", async (arg) => {
 		let valID: string
 		if (arg) {
