@@ -83,6 +83,12 @@
 				"icon": "$(file-code)"
 			},
 			{
+				"command": "valtown.quickOpen",
+				"title": "Go to Val",
+				"category": "Val Town",
+				"icon": "$(file-code)"
+			},
+			{
 				"command": "valtown.copyAsJSON",
 				"title": "Copy as JSON",
 				"category": "Val Town"
@@ -226,6 +232,14 @@
 				{
 					"command": "valtown.togglePinned",
 					"when": "false"
+				},
+				{
+					"command": "valtown.open",
+					"when": "false"
+				},
+				{
+					"command": "valtown.quickOpen",
+					"when": "valtown.loggedIn"
 				}
 			],
 			"editor/title": [
@@ -239,6 +253,11 @@
 					"command": "valtown.viewReadme",
 					"group": "navigation@2",
 					"when": "resourceScheme == val && resourceLangId != markdown"
+				},
+				{
+					"command": "valtown.open",
+					"group": "navigation@2",
+					"when": "resourceScheme == val && resourceLangId == markdown"
 				}
 			],
 			"view/title": [
