@@ -7,6 +7,7 @@ import { ValtownClient } from "./client";
 import { registerFileSystemProvider } from "./fs";
 import { loadToken } from "./secrets";
 import { registerCommands } from "./commands";
+import { registerUriHandler } from "./uri";
 
 export async function activate(context: vscode.ExtensionContext) {
   // set output channel
@@ -48,6 +49,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
 
 
+  outputChannel.appendLine("Registering uri handler");
+  registerUriHandler();
   outputChannel.appendLine("Registering tree view");
   registerTreeView(context, client);
   outputChannel.appendLine("Registering file system provider");
