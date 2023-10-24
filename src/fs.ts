@@ -16,7 +16,7 @@ class ValtownFileSystemProvider implements vscode.FileSystemProvider {
     const filename = uri.path.split("/").pop() || "";
     const val = await this.client.getVal(uri.authority);
 
-    if (filename == "mod.ts") {
+    if (filename == "mod.ts" || filename == "mod.tsx") {
       return new TextEncoder().encode(val.code || "")
     } else if (filename === "README.md") {
       return new TextEncoder().encode(val.readme || "")
@@ -68,7 +68,7 @@ class ValtownFileSystemProvider implements vscode.FileSystemProvider {
     options: { readonly create: boolean; readonly overwrite: boolean },
   ) {
     const filename = uri.path.split("/").pop() || "";
-    if (!filename.endsWith(".ts")) {
+    if (!(filename == "mod.ts" || filename == "mod.tsx")) {
       return;
     }
 

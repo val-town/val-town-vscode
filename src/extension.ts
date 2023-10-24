@@ -19,7 +19,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   let token = await loadToken(context);
   if (token) {
-    await vscode.commands.executeCommand("setContext", "valtown.ready", true)
+    await vscode.commands.executeCommand("setContext", "valtown.loggedIn", true)
   }
 
   const client = new ValtownClient(endpoint, token);
@@ -30,7 +30,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     const token = await loadToken(context);
     client.setToken(token);
-    await vscode.commands.executeCommand("setContext", "valtown.ready", token !== undefined)
+    await vscode.commands.executeCommand("setContext", "valtown.loggedIn", !!token)
     await vscode.commands.executeCommand("valtown.refresh")
   })
 

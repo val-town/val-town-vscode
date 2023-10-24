@@ -1,7 +1,7 @@
 import { RequestInit, fetch } from "undici"
 import { animals, colors, uniqueNamesGenerator } from "unique-names-generator"
 
-type BaseVal = {
+export type BaseVal = {
   id: string
   name: string,
   code: string,
