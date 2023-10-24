@@ -26,6 +26,13 @@ type Paginated<T> = {
   }
 }
 
+export type Version = {
+  valID: string,
+  version: number,
+  runStartAt: string,
+  runEndAt: string,
+}
+
 
 export class ValtownClient {
   private _uid: string | undefined;
@@ -144,8 +151,29 @@ export class ValtownClient {
     return vals
   }
 
-  async getVal(valId: string) {
-    const resp = await this.fetch(`${this.endpoint}/v1/vals/${valId}`);
+  async listVersions(valId: string) {
+    const endpoint = `${this.endpoint}/v1/vals/${valId}/versions?limit=100`;
+    const versions = [] as Version[];
+    while (true) {
+      const resp = await this.fetch(endpoint);
+      if (!resp.ok) {
+        throw new Error("Failed to get versions");
+      }
+
+      const body = await resp.json() as Paginated<Version>;
+      versions.push(...body.data);
+
+      if (!body.links.next) {
+        break;
+      }
+    }
+
+    return versions;
+  }
+
+  async getVal(valId: string, version?: number) {
+    const endpoint = version ? `${this.endpoint}/v1/vals/${valId}/versions/${version}` : `${this.endpoint}/v1/vals/${valId}`;
+    const resp = await this.fetch(endpoint);
 
     if (!resp.ok) {
       throw new Error("Failed to get val");

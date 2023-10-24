@@ -153,6 +153,11 @@
 				"command": "valtown.togglePinned",
 				"category": "Val Town",
 				"title": "Toggle Pinned"
+			},
+			{
+				"command": "valtown.diff",
+				"category": "Val Town",
+				"title": "Compare With Previous Version"
 			}
 		],
 		"configuration": [
@@ -230,6 +235,10 @@
 					"when": "resourceScheme == val"
 				},
 				{
+					"command": "valtown.diff",
+					"when": "resourceScheme == val"
+				},
+				{
 					"command": "valtown.togglePinned",
 					"when": "false"
 				},
@@ -243,12 +252,6 @@
 				}
 			],
 			"editor/title": [
-				{
-					"command": "valtown.openInBrowser",
-					"alt": "valtown.copyLink",
-					"group": "navigation@1",
-					"when": "resourceScheme == val"
-				},
 				{
 					"command": "valtown.viewReadme",
 					"group": "navigation@2",

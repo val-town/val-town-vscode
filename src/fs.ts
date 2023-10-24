@@ -14,7 +14,16 @@ class ValtownFileSystemProvider implements vscode.FileSystemProvider {
 
   async readFile(uri: vscode.Uri) {
     const filename = uri.path.split("/").pop() || "";
-    const val = await this.client.getVal(uri.authority);
+
+    let version: number | undefined;
+    const match = uri.path.match(/@(\d+)/)
+    if (match) {
+      version = parseInt(match[1]);
+    }
+
+    const val = await this.client.getVal(uri.authority, version);
+
+
 
     if (filename == "mod.ts" || filename == "mod.tsx") {
       return new TextEncoder().encode(val.code || "")
@@ -43,23 +52,24 @@ class ValtownFileSystemProvider implements vscode.FileSystemProvider {
     vscode.window.showErrorMessage("Cannot rename files in ValTown");
   }
 
-  stat(uri: vscode.Uri): vscode.FileStat | Thenable<vscode.FileStat> {
+  async stat(uri: vscode.Uri) {
     const filename = uri.path.split("/").pop() || "";
+    await this.client.getVal(uri.authority);
 
-    return this.client.getVal(uri.authority).then((val) => {
-      let permission: vscode.FilePermission | undefined;
-      if (filename === "README.md" || filename === "val.json") {
-        permission = vscode.FilePermission.Readonly;
-      }
+    let readonly = false;
+    if (filename === "README.md" || filename === "val.json") {
+      readonly = true;
+    } else if (uri.path.includes("@")) {
+      readonly = true;
+    }
 
-      return {
-        type: vscode.FileType.File,
-        permissions: permission,
-        ctime: 0,
-        mtime: 0,
-        size: 0,
-      };
-    });
+    return {
+      type: vscode.FileType.File,
+      permissions: readonly ? vscode.FilePermission.Readonly : undefined,
+      ctime: 0,
+      mtime: 0,
+      size: 0,
+    };
   }
 
   async writeFile(

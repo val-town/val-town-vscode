@@ -233,6 +233,36 @@ export function registerCommands(context: vscode.ExtensionContext, client: Valto
 	);
 
 	vscode.commands.registerCommand(
+		"valtown.diff",
+		async (arg) => {
+			const valID = extractValID(arg)
+			const val = await client.getVal(valID);
+			const versions = await client.listVersions(valID);
+			if (versions.length < 2) {
+				vscode.window.showErrorMessage("Val has no previous versions");
+				return;
+			}
+			const pick = await vscode.window.showQuickPick<{ version: number } & vscode.QuickPickItem>(
+				versions.slice(1).map((version) => ({
+					label: `v${version.version}`,
+					description: new Date(version.runStartAt).toLocaleString(),
+					version: version.version,
+				})),
+				{ title: "Select a version to open" },
+			);
+			if (!pick) {
+				return;
+			}
+
+			return vscode.commands.executeCommand(
+				"vscode.diff",
+				vscode.Uri.parse(`val://${val.id}/${val.author?.username?.slice(1)}/${val.name}@${pick.version}/mod.tsx`),
+				vscode.Uri.parse(`val://${val.id}/${val.author?.username?.slice(1)}/${val.name}@/mod.tsx`),
+			);
+		},
+	)
+
+	vscode.commands.registerCommand(
 		"valtown.quickOpen",
 		async () => {
 			const vals = await client.listMyVals();
