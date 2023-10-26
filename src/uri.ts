@@ -14,8 +14,6 @@ class ValtownUriHandler implements vscode.UriHandler {
 	}
 }
 
-export function registerUriHandler() {
-	if (typeof vscode.window.registerUriHandler === "function") {
-		vscode.window.registerUriHandler(new ValtownUriHandler());
-	}
+export function registerUriHandler(context: vscode.ExtensionContext) {
+	context.subscriptions.push(vscode.window.registerUriHandler(new ValtownUriHandler()))
 }

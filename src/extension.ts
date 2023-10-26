@@ -49,8 +49,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
 
 
+
   outputChannel.appendLine("Registering uri handler");
-  registerUriHandler();
+  registerUriHandler(context);
   outputChannel.appendLine("Registering tree view");
   registerTreeView(context, client);
   outputChannel.appendLine("Registering file system provider");
@@ -59,3 +60,5 @@ export async function activate(context: vscode.ExtensionContext) {
   registerCommands(context, client);
   outputChannel.appendLine("ValTown extension activated");
 }
+
+export async function deactivate() { }
