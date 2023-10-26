@@ -1,12 +1,11 @@
 # Val Town - VS Code Integration
 
-![screenshot of the extension](./img/screenshot.png)
+Author your vals from the comfort of VS Code.
 
-## Installation
+![screenshot of the extension](https://raw.githubusercontent.com/pomdtr/valtown-vscode/master/img/screenshot.png)
 
-```sh
-npm install -g @vscode/vsce # if you don't have it already
-npm install # install dependencies
-vsce package # generate .vsix file
-code --install-extension valtown-0.0.1.vsix # install extension
-```
+## Features
+
+- Side Bar for viewing and editing vals
+- Edit your vals in a text editor
+- Diff val with previous versions
