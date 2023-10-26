@@ -6,6 +6,8 @@ export type BaseVal = {
   code: string,
   privacy: "public" | "private" | "unlisted"
   version: number,
+  runStartAt: string,
+  runEndAt: string,
   author: {
     id: string;
     username: string;

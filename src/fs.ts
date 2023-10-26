@@ -52,6 +52,7 @@ class ValtownFileSystemProvider implements vscode.FileSystemProvider {
   }
 
   async stat(uri: vscode.Uri) {
+    const val = await this.client.getVal(uri.authority);
     const filename = uri.path.split("/").pop() || "";
     await this.client.getVal(uri.authority);
 
@@ -66,8 +67,8 @@ class ValtownFileSystemProvider implements vscode.FileSystemProvider {
       type: vscode.FileType.File,
       permissions: readonly ? vscode.FilePermission.Readonly : undefined,
       ctime: 0,
-      mtime: 0,
-      size: 0,
+      mtime: new Date(val.runStartAt).getTime(),
+      size: new TextEncoder().encode(val.code || "").length,
     };
   }
 
