@@ -1,6 +1,5 @@
 import { ValtownClient } from "./client";
 import * as vscode from "vscode";
-import { TextDecoder, TextEncoder } from "util";
 
 export const FS_SCHEME = "val";
 

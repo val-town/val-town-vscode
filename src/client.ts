@@ -1,4 +1,3 @@
-import { RequestInit, fetch } from "undici"
 import { animals, colors, uniqueNamesGenerator } from "unique-names-generator"
 
 export type BaseVal = {
@@ -122,7 +121,7 @@ export class ValtownClient {
         break
       }
 
-      endpoint = body.links.next;
+      endpoint = body.links.next.replace("http://", "https://")
     }
 
     return vals
@@ -145,14 +144,14 @@ export class ValtownClient {
         break;
       }
 
-      endpoint = body.links.next;
+      endpoint = body.links.next.replace("http://", "https://")
     }
 
     return vals
   }
 
   async listVersions(valId: string) {
-    const endpoint = `${this.endpoint}/v1/vals/${valId}/versions?limit=100`;
+    let endpoint = `${this.endpoint}/v1/vals/${valId}/versions?limit=100`;
     const versions = [] as Version[];
     while (true) {
       const resp = await this.fetch(endpoint);
@@ -166,6 +165,8 @@ export class ValtownClient {
       if (!body.links.next) {
         break;
       }
+
+      endpoint = body.links.next.replace("http://", "https://")
     }
 
     return versions;
