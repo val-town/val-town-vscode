@@ -11,16 +11,17 @@ class ValtownFileSystemProvider implements vscode.FileSystemProvider {
       vscode.FileChangeEvent[]
     >().event;
 
+  static extractVersion(uri: vscode.Uri) {
+    const match = uri.path.match(/@(\d+)/)
+    if (match) {
+      return parseInt(match[1]);
+    }
+  }
+
   async readFile(uri: vscode.Uri) {
     const filename = uri.path.split("/").pop() || "";
 
-    let version: number | undefined;
-    const match = uri.path.match(/@(\d+)/)
-    if (match) {
-      version = parseInt(match[1]);
-    }
-
-    const val = await this.client.getVal(uri.authority, version);
+    const val = await this.client.getVal(uri.authority, ValtownFileSystemProvider.extractVersion(uri));
 
 
 
@@ -52,21 +53,24 @@ class ValtownFileSystemProvider implements vscode.FileSystemProvider {
   }
 
   async stat(uri: vscode.Uri) {
-    const val = await this.client.getVal(uri.authority);
+    const version = ValtownFileSystemProvider.extractVersion(uri);
+    const val = await this.client.getVal(uri.authority, version);
     const filename = uri.path.split("/").pop() || "";
-    await this.client.getVal(uri.authority);
+    const uid = await this.client.uid();
 
     let readonly = false;
     if (filename === "README.md" || filename === "val.json") {
       readonly = true;
-    } else if (uri.path.includes("@")) {
+    } else if (typeof version !== "undefined") {
+      readonly = true;
+    } else if (val.author.id !== uid) {
       readonly = true;
     }
 
     return {
       type: vscode.FileType.File,
       permissions: readonly ? vscode.FilePermission.Readonly : undefined,
-      ctime: 0,
+      ctime: new Date(val.runStartAt).getTime(),
       mtime: new Date(val.runStartAt).getTime(),
       size: new TextEncoder().encode(val.code || "").length,
     };
