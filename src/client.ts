@@ -1,5 +1,3 @@
-import { animals, colors, uniqueNamesGenerator } from "unique-names-generator"
-
 export type BaseVal = {
   id: string
   name: string,
@@ -34,6 +32,7 @@ export type Version = {
   runEndAt: string,
 }
 
+const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
 
 export class ValtownClient {
   private _uid: string | undefined;
@@ -83,14 +82,11 @@ export class ValtownClient {
   }
 
   async createVal() {
-    let name = uniqueNamesGenerator({
-      dictionaries: [colors, animals],
-      separator: "",
-      style: "capital",
-    });
-    name = name[0].toLowerCase() + name.slice(1);
+    const suffix = Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
 
-    const code = `export const ${name} = {"hello": "world"};`
+    const code = `export async function untitled_${suffix}() {
+
+};`
     const resp = await this.fetch(`${this.endpoint}/v1/vals`, {
       method: "POST",
       headers: {
