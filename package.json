@@ -161,6 +161,66 @@
 				"command": "valtown.diff",
 				"category": "Val Town",
 				"title": "Compare With Previous Version"
+			},
+			{
+				"command": "valtown.sortHomeByName",
+				"category": "Val Town",
+				"title": "Sort by Name"
+			},
+			{
+				"command": "valtown.sortHomeByPrivacy",
+				"category": "Val Town",
+				"title": "Sort by Privacy"
+			},
+			{
+				"command": "valtown.sortHomeByRun",
+				"category": "Val Town",
+				"title": "Sort by Last Run"
+			},
+			{
+				"command": "valtown.clearHomeSort",
+				"category": "Val Town",
+				"title": "Clear Sort"
+			},
+			{
+				"command": "valtown.sortLikedByName",
+				"category": "Val Town",
+				"title": "Sort by Name"
+			},
+			{
+				"command": "valtown.sortLikedByPrivacy",
+				"category": "Val Town",
+				"title": "Sort by Privacy"
+			},
+			{
+				"command": "valtown.sortLikedByRun",
+				"category": "Val Town",
+				"title": "Sort by Last Run"
+			},
+			{
+				"command": "valtown.clearLikedSort",
+				"category": "Val Town",
+				"title": "Clear Sort"
+			},
+			{
+				"command": "valtown.sortPinnedByName",
+				"category": "Val Town",
+				"title": "Sort by Name"
+			},
+			{
+				"command": "valtown.sortPinnedByPrivacy",
+				"category": "Val Town",
+				"title": "Sort by Privacy"
+			},
+			{
+				"command": "valtown.sortPinnedByRun",
+				"category": "Val Town",
+				"title": "Sort by Last Run"
+			},
+			{
+				"command": "valtown.clearPinnedSort",
+				"category": "Val Town",
+				"title": "Clear Sort"
 			}
 		],
 		"configuration": [
@@ -313,6 +373,66 @@
 					"command": "valtown.deleteVal",
 					"group": "navigation@8",
 					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.sortHomeByName",
+					"group": "home@1",
+					"when": "viewItem == home"
+				},
+				{
+					"command": "valtown.sortHomeByPrivacy",
+					"group": "home@2",
+					"when": "viewItem == home"
+				},
+				{
+					"command": "valtown.sortHomeByRun",
+					"group": "home@3",
+					"when": "viewItem == home"
+				},
+				{
+					"command": "valtown.clearHomeSort",
+					"group": "home@4",
+					"when": "viewItem == home"
+				},
+				{
+					"command": "valtown.sortLikedByName",
+					"group": "liked@1",
+					"when": "viewItem == likes"
+				},
+				{
+					"command": "valtown.sortLikedByPrivacy",
+					"group": "liked@2",
+					"when": "viewItem == likes"
+				},
+				{
+					"command": "valtown.sortLikedByRun",
+					"group": "liked@3",
+					"when": "viewItem == likes"
+				},
+				{
+					"command": "valtown.clearLikedSort",
+					"group": "liked@4",
+					"when": "viewItem == likes"
+				},
+				{
+					"command": "valtown.sortPinnedByName",
+					"group": "pinned@1",
+					"when": "viewItem == pinned"
+				},
+				{
+					"command": "valtown.sortPinnedByPrivacy",
+					"group": "pinned@2",
+					"when": "viewItem == pinned"
+				},
+				{
+					"command": "valtown.sortPinnedByRun",
+					"group": "pinned@3",
+					"when": "viewItem == pinned"
+				},
+				{
+					"command": "valtown.clearPinnedSort",
+					"group": "pinned@4",
+					"when": "viewItem == pinned"
 				}
 			],
 			"valtown.copy": [
