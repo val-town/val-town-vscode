@@ -119,7 +119,7 @@ export class ValtownClient {
         break
       }
 
-      endpoint = body.links.next.replace("http://", "https://")
+      endpoint = body.links.next;
     }
 
     return vals
@@ -142,7 +142,7 @@ export class ValtownClient {
         break;
       }
 
-      endpoint = body.links.next.replace("http://", "https://")
+      endpoint = body.links.next;
     }
 
     return vals
@@ -164,7 +164,7 @@ export class ValtownClient {
         break;
       }
 
-      endpoint = body.links.next.replace("http://", "https://")
+      endpoint = body.links.next;
     }
 
     return versions;
