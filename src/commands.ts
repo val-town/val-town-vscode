@@ -178,21 +178,6 @@ export function registerCommands(context: vscode.ExtensionContext, client: Valto
 			},
 		),
 		vscode.commands.registerCommand(
-			"valtown.togglePinned",
-			async (arg) => {
-				const valID = extractValID(arg)
-				const val = await client.getVal(valID);
-				const pinnedVals = context.globalState.get<Record<string, FullVal>>("valtown.pins", {});
-				if (pinnedVals[valID]) {
-					delete pinnedVals[valID];
-				} else {
-					pinnedVals[valID] = val;
-				}
-				await context.globalState.update("valtown.pins", pinnedVals);
-				await vscode.commands.executeCommand("valtown.refresh");
-			},
-		),
-		vscode.commands.registerCommand(
 			"valtown.copyEmailAddress",
 			async (arg) => {
 				const valID = extractValID(arg)

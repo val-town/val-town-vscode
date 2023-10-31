@@ -129,6 +129,27 @@ export async function registerTreeView(context: vscode.ExtensionContext, client:
     const pins = await context.globalState.get<Record<string, FullVal>>("valtown.pins", {});
     tree.pins = Object.values(pins);
     tree.refresh();
-  }))
+  }), vscode.commands.registerCommand(
+    "valtown.togglePinned",
+    async (arg) => {
+      if (!arg.id) {
+        vscode.window.showErrorMessage("No val selected");
+        return;
+      }
+      const valID = arg.id.split("/").pop() as string;
+      const val = await client.getVal(valID);
+      const pinnedVals = context.globalState.get<Record<string, FullVal>>("valtown.pins", {});
+      if (pinnedVals[valID]) {
+        delete pinnedVals[valID];
+      } else {
+        pinnedVals[valID] = val;
+      }
+      await context.globalState.update("valtown.pins", pinnedVals);
+
+      tree.pins = Object.values(pinnedVals);
+      await tree.refresh();
+    },
+  ),
+  )
 
 }
