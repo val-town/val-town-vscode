@@ -86,55 +86,82 @@
 				"icon": "$(file-code)"
 			},
 			{
+				"command": "valtown.rename",
+				"title": "Rename Val",
+				"category": "Val Town",
+				"icon": "$(edit)"
+			},
+			{
+				"command": "valtown.setPrivacy",
+				"title": "Set Privacy",
+				"category": "Val Town",
+				"icon": "$(eye)"
+			},
+			{
+				"command": "valtown.setPrivate",
+				"title": "Private",
+				"category": "Val Town"
+			},
+			{
+				"command": "valtown.setUnlisted",
+				"title": "Unlisted",
+				"category": "Val Town"
+			},
+			{
+				"command": "valtown.setPublic",
+				"title": "Public",
+				"category": "Val Town"
+			},
+			{
 				"command": "valtown.quickOpen",
-				"title": "Go to Val",
+				"title": "Open Val...",
 				"category": "Val Town",
 				"icon": "$(file-code)"
 			},
 			{
-				"command": "valtown.copyAsJSON",
-				"title": "Copy as JSON",
+				"command": "copyValID",
+				"title": "Val ID",
 				"category": "Val Town"
 			},
 			{
-				"command": "valtown.copyID",
-				"title": "Copy ID",
+				"command": "valtown.copyModuleURL",
+				"title": "Module URL",
 				"category": "Val Town"
 			},
 			{
-				"command": "valtown.copyRunEndpoint",
-				"title": "Copy Run Endpoint",
+				"command": "valtown.copyScriptTag",
+				"title": "Script Tag",
 				"category": "Val Town"
 			},
 			{
-				"command": "valtown.copyImport",
-				"title": "Copy Import",
-				"category": "Val Town"
-			},
-			{
-				"command": "valtown.copyWebEndpoint",
-				"title": "Copy Web Endpoint",
-				"category": "Val Town"
-			},
-			{
-				"command": "valtown.copyLink",
-				"title": "Copy Link",
+				"command": "valtown.copyValUrl",
+				"title": "Val URL",
 				"category": "Val Town",
 				"icon": "$(link)"
 			},
 			{
-				"command": "valtown.copyExpressEndpoint",
-				"title": "Copy Express Endpoint",
-				"category": "Val Town"
-			},
-			{
-				"command": "valtown.copyEmbed",
-				"title": "Copy Embed",
+				"command": "valtown.copyEmbedUrl",
+				"title": "Embed URL",
 				"category": "Val Town"
 			},
 			{
 				"command": "valtown.copyEmailAddress",
-				"title": "Copy Email",
+				"title": "Email Address",
+				"category": "Val Town"
+			},
+			{
+				"command": "valtown.copyHttpEndpoint",
+				"title": "HTTP Endpoint",
+				"category": "Val Town"
+			},
+			{
+				"command": "valtown.openValUrl",
+				"title": "Val URL",
+				"category": "Val Town"
+			},
+			{
+				"command": "valtown.openHttpEndpoint",
+				"title": "HTTP Endpoint",
 				"category": "Val Town"
 			},
 			{
@@ -148,9 +175,9 @@
 				"title": "Clear Token"
 			},
 			{
-				"command": "valtown.openLogs",
+				"command": "valtown.openValLogs",
 				"category": "Val Town",
-				"title": "Open Logs"
+				"title": "Val Logs"
 			},
 			{
 				"command": "valtown.togglePinned",
@@ -184,85 +211,17 @@
 				{
 					"command": "valtown.clearToken",
 					"when": "valtown.loggedIn"
-				},
-				{
-					"command": "valtown.copyWebEndpoint",
-					"when": "resourceScheme == val"
-				},
-				{
-					"command": "valtown.copyExpressEndpoint",
-					"when": "resourceScheme == val"
-				},
-				{
-					"command": "valtown.copyEmailAddress",
-					"when": "resourceScheme == val"
-				},
-				{
-					"command": "valtown.copyLink",
-					"when": "resourceScheme == val"
-				},
-				{
-					"command": "valtown.copyImport",
-					"when": "resourceScheme == val"
-				},
-				{
-					"command": "valtown.copyEmbed",
-					"when": "resourceScheme == val"
-				},
-				{
-					"command": "valtown.copyID",
-					"when": "resourceScheme == val"
-				},
-				{
-					"command": "valtown.copyAsJSON",
-					"when": "resourceScheme == val"
-				},
-				{
-					"command": "valtown.copyRunEndpoint",
-					"when": "resourceScheme == val"
-				},
-				{
-					"command": "valtown.deleteVal",
-					"when": "false"
-				},
-				{
-					"command": "valtown.openInBrowser",
-					"when": "resourceScheme == val"
-				},
-				{
-					"command": "valtown.openLogs",
-					"when": "resourceScheme == val"
-				},
-				{
-					"command": "valtown.viewReadme",
-					"when": "resourceScheme == val"
-				},
-				{
-					"command": "valtown.diff",
-					"when": "resourceScheme == val"
-				},
-				{
-					"command": "valtown.togglePinned",
-					"when": "false"
-				},
-				{
-					"command": "valtown.open",
-					"when": "false"
-				},
-				{
-					"command": "valtown.quickOpen",
-					"when": "valtown.loggedIn"
 				}
 			],
 			"editor/title": [
 				{
 					"command": "valtown.viewReadme",
-					"group": "navigation@2",
+					"group": "navigation@1",
 					"when": "resourceScheme == val && resourceLangId != markdown"
 				},
 				{
 					"command": "valtown.open",
-					"group": "navigation@2",
+					"group": "navigation@1",
 					"when": "resourceScheme == val && resourceLangId == markdown"
 				}
 			],
@@ -280,99 +239,124 @@
 			],
 			"view/item/context": [
 				{
-					"command": "valtown.open",
+					"command": "valtown.rename",
 					"group": "navigation@1",
 					"when": "viewItem == val"
 				},
 				{
-					"command": "valtown.openInBrowser",
+					"submenu": "valtown.submenus.copy",
 					"group": "navigation@2",
 					"when": "viewItem == val"
 				},
 				{
-					"submenu": "valtown.copy",
+					"submenu": "valtown.submenus.open",
 					"group": "navigation@3",
 					"when": "viewItem == val"
 				},
 				{
-					"submenu": "valtown.endpoints",
+					"submenu": "valtown.submenus.privacy",
 					"group": "navigation@4",
-					"when": "viewItem == val"
-				},
-				{
-					"command": "valtown.openLogs",
-					"group": "navigation@5",
 					"when": "viewItem == val"
 				},
 				{
 					"command": "valtown.togglePinned",
-					"group": "navigation@6",
+					"group": "navigation@5",
 					"when": "viewItem == val"
 				},
 				{
 					"command": "valtown.deleteVal",
-					"group": "navigation@8",
+					"group": "navigation@6",
 					"when": "viewItem == val"
 				}
 			],
-			"valtown.copy": [
+			"valtown.submenus.privacy": [
 				{
-					"command": "valtown.copyLink",
-					"group": "navigation@1",
-					"when": "viewItem == val"
-				},
-				{
-					"command": "valtown.copyImport",
+					"command": "valtown.setPrivate",
 					"group": "navigation@2",
 					"when": "viewItem == val"
 				},
 				{
-					"command": "valtown.copyEmbed",
+					"command": "valtown.setUnlisted",
 					"group": "navigation@3",
 					"when": "viewItem == val"
 				},
 				{
-					"command": "valtown.copyID",
+					"command": "valtown.setPublic",
+					"group": "navigation@1",
+					"when": "viewItem == val"
+				}
+			],
+			"valtown.submenus.open": [
+				{
+					"command": "valtown.openValUrl",
+					"group": "navigation@1",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.openHttpEndpoint",
+					"group": "navigation@2",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.openValLogs",
+					"group": "navigation@3",
+					"when": "viewItem == val"
+				}
+			],
+			"valtown.submenus.copy": [
+				{
+					"command": "valtown.copyValUrl",
+					"group": "navigation@1",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.copyModuleURL",
+					"group": "navigation@2",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.copyScriptTag",
+					"group": "navigation@3",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.copyEmbedUrl",
 					"group": "navigation@4",
 					"when": "viewItem == val"
 				},
 				{
-					"command": "valtown.copyAsJSON",
+					"command": "copyValID",
 					"group": "navigation@5",
 					"when": "viewItem == val"
-				}
-			],
-			"valtown.endpoints": [
-				{
-					"command": "valtown.copyRunEndpoint",
-					"group": "navigation@1",
-					"when": "viewItem == val"
 				},
 				{
-					"command": "valtown.copyExpressEndpoint",
-					"group": "navigation@2",
-					"when": "viewItem == val"
-				},
-				{
-					"command": "valtown.copyWebEndpoint",
-					"group": "navigation@3",
+					"command": "valtown.copyHttpEndpoint",
+					"group": "navigation@6",
 					"when": "viewItem == val"
 				},
 				{
 					"command": "valtown.copyEmailAddress",
-					"group": "navigation@5",
+					"group": "navigation@7",
 					"when": "viewItem == val"
 				}
 			]
 		},
 		"submenus": [
 			{
-				"id": "valtown.copy",
+				"id": "valtown.submenus.open",
+				"label": "Open"
+			},
+			{
+				"id": "valtown.submenus.privacy",
+				"label": "Set Privacy"
+			},
+			{
+				"id": "valtown.submenus.copy",
 				"label": "Copy"
 			},
 			{
-				"id": "valtown.endpoints",
-				"label": "Endpoints"
+				"id": "valtown.privacy",
+				"label": "Set Privacy"
 			}
 		]
 	},

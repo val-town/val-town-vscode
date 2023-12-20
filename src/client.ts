@@ -1,43 +1,43 @@
 export type BaseVal = {
-  id: string
-  name: string,
-  code: string,
-  privacy: "public" | "private" | "unlisted"
-  version: number,
-  runStartAt: string,
-  runEndAt: string,
+  id: string;
+  name: string;
+  code: string;
+  privacy: "public" | "private" | "unlisted";
+  version: number;
+  runStartAt: string;
+  runEndAt: string;
   author: {
     id: string;
     username: string;
-  }
-}
+  };
+};
 
 export type FullVal = BaseVal & {
-  readme: string,
-}
+  readme: string;
+};
 
 type Paginated<T> = {
-  data: T[],
+  data: T[];
   links: {
-    self: string,
-    next?: string,
-    prev?: string,
-  }
-}
+    self: string;
+    next?: string;
+    prev?: string;
+  };
+};
 
 export type Version = {
-  valID: string,
-  version: number,
-  runStartAt: string,
-  runEndAt: string,
-}
+  valID: string;
+  version: number;
+  runStartAt: string;
+  runEndAt: string;
+};
 
 const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
 
 export class ValtownClient {
   private _uid: string | undefined;
 
-  constructor(public endpoint: string, private token?: string) { }
+  constructor(public endpoint: string, private token?: string) {}
 
   setToken(token?: string) {
     this.token = token;
@@ -59,21 +59,21 @@ export class ValtownClient {
     const headers = {
       ...init?.headers,
       Authorization: `Bearer ${this.token}`,
-    }
+    };
     return fetch(url, {
       ...init,
-      headers
-    })
+      headers,
+    });
   }
 
   async uid() {
     if (!this._uid) {
-      const resp = await this.fetch(`${this.endpoint}/v1/me`)
+      const resp = await this.fetch(`${this.endpoint}/v1/me`);
       if (resp.status !== 200) {
         throw new Error("Failed to get user ID");
       }
 
-      const body = await resp.json() as { id: string }
+      const body = (await resp.json()) as { id: string };
 
       this._uid = body.id;
     }
@@ -82,11 +82,14 @@ export class ValtownClient {
   }
 
   async createVal() {
-    const suffix = Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+    const suffix = Array.from(
+      { length: 8 },
+      () => chars[Math.floor(Math.random() * chars.length)]
+    ).join("");
 
     const code = `export async function untitled_${suffix}() {
 
-};`
+};`;
     const resp = await this.fetch(`${this.endpoint}/v1/vals`, {
       method: "POST",
       headers: {
@@ -95,7 +98,7 @@ export class ValtownClient {
       body: JSON.stringify({
         code,
       }),
-    })
+    });
     if (!resp.ok) {
       throw new Error("Failed to create val");
     }
@@ -113,16 +116,16 @@ export class ValtownClient {
         throw new Error("Failed to get liked vals");
       }
 
-      const body = await resp.json() as Paginated<BaseVal>;
+      const body = (await resp.json()) as Paginated<BaseVal>;
       vals.push(...body.data);
       if (!body.links.next) {
-        break
+        break;
       }
 
       endpoint = body.links.next;
     }
 
-    return vals
+    return vals;
   }
 
   async listMyVals() {
@@ -135,7 +138,7 @@ export class ValtownClient {
       if (!resp.ok) {
         throw new Error("Failed to get my vals");
       }
-      const body = await resp.json() as Paginated<BaseVal>;
+      const body = (await resp.json()) as Paginated<BaseVal>;
       vals.push(...body.data);
 
       if (!body.links.next) {
@@ -145,7 +148,7 @@ export class ValtownClient {
       endpoint = body.links.next;
     }
 
-    return vals
+    return vals;
   }
 
   async listVersions(valId: string) {
@@ -157,7 +160,7 @@ export class ValtownClient {
         throw new Error("Failed to get versions");
       }
 
-      const body = await resp.json() as Paginated<Version>;
+      const body = (await resp.json()) as Paginated<Version>;
       versions.push(...body.data);
 
       if (!body.links.next) {
@@ -171,7 +174,9 @@ export class ValtownClient {
   }
 
   async getVal(valId: string, version?: number) {
-    const endpoint = version ? `${this.endpoint}/v1/vals/${valId}/versions/${version}` : `${this.endpoint}/v1/vals/${valId}`;
+    const endpoint = version
+      ? `${this.endpoint}/v1/vals/${valId}/versions/${version}`
+      : `${this.endpoint}/v1/vals/${valId}`;
     const resp = await this.fetch(endpoint);
 
     if (!resp.ok) {
@@ -181,20 +186,52 @@ export class ValtownClient {
     return resp.json() as Promise<FullVal>;
   }
 
-  async writeVal(
-    valID: string,
-    code: string,
-  ) {
-    console.log("writing val", valID, code)
-    const resp = await this.fetch(`${this.endpoint}/v1/vals/${valID}/versions`, {
-      method: "POST",
+  async renameVal(valID: string, name: string) {
+    const resp = await this.fetch(`${this.endpoint}/v1/vals/${valID}`, {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        code,
+        name,
       }),
     });
+
+    if (!resp.ok) {
+      throw new Error("Failed to rename val");
+    }
+  }
+
+  async setPrivacy(valID: string, privacy: "public" | "unlisted" | "private") {
+    const resp = await this.fetch(`${this.endpoint}/v1/vals/${valID}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        privacy,
+      }),
+    });
+
+    if (!resp.ok) {
+      throw new Error("Failed to set privacy");
+    }
+  }
+
+  async writeVal(valID: string, code: string) {
+    console.log("writing val", valID, code);
+    const resp = await this.fetch(
+      `${this.endpoint}/v1/vals/${valID}/versions`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code,
+        }),
+      }
+    );
 
     if (!resp.ok) {
       throw new Error("Failed to write val");
@@ -212,7 +249,9 @@ export class ValtownClient {
   }
 
   async resolveVal(username: string, valname: string) {
-    const resp = await this.fetch(`${this.endpoint}/v1/alias/${username}/${valname}`);
+    const resp = await this.fetch(
+      `${this.endpoint}/v1/alias/${username}/${valname}`
+    );
 
     if (!resp.ok) {
       throw new Error("Failed to resolve val");
