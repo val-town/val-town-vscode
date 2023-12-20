@@ -211,6 +211,102 @@
 				{
 					"command": "valtown.clearToken",
 					"when": "valtown.loggedIn"
+				},
+				{
+					"command": "valtown.quickOpen",
+					"when": "valtown.loggedIn"
+				},
+				{
+					"command": "valtown.diff",
+					"when": "valtown.loggedIn && resourceScheme == val"
+				},
+				{
+					"command": "valtown.createVal",
+					"when": "valtown.loggedIn"
+				},
+				{
+					"command": "valtown.deleteVal",
+					"when": "false"
+				},
+				{
+					"command": "valtown.viewReadme",
+					"when": "false"
+				},
+				{
+					"command": "valtown.refresh",
+					"when": "false"
+				},
+				{
+					"command": "valtown.openInBrowser",
+					"when": "false"
+				},
+				{
+					"command": "valtown.open",
+					"when": "false"
+				},
+				{
+					"command": "valtown.rename",
+					"when": "false"
+				},
+				{
+					"command": "valtown.setPrivacy",
+					"when": "false"
+				},
+				{
+					"command": "valtown.setPrivate",
+					"when": "false"
+				},
+				{
+					"command": "valtown.setUnlisted",
+					"when": "false"
+				},
+				{
+					"command": "valtown.setPublic",
+					"when": "false"
+				},
+				{
+					"command": "copyValID",
+					"when": "false"
+				},
+				{
+					"command": "valtown.copyModuleURL",
+					"when": "false"
+				},
+				{
+					"command": "valtown.copyScriptTag",
+					"when": "false"
+				},
+				{
+					"command": "valtown.copyValUrl",
+					"when": "false"
+				},
+				{
+					"command": "valtown.copyEmbedUrl",
+					"when": "false"
+				},
+				{
+					"command": "valtown.copyEmailAddress",
+					"when": "false"
+				},
+				{
+					"command": "valtown.copyHttpEndpoint",
+					"when": "false"
+				},
+				{
+					"command": "valtown.openValUrl",
+					"when": "false"
+				},
+				{
+					"command": "valtown.openHttpEndpoint",
+					"when": "false"
+				},
+				{
+					"command": "valtown.openValLogs",
+					"when": "false"
+				},
+				{
+					"command": "valtown.togglePinned",
+					"when": "false"
 				}
 			],
 			"editor/title": [
