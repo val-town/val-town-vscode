@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { clearToken, saveToken } from "./secrets";
-import { FullVal, ValtownClient } from "./client";
+import { ValTemplate, ValtownClient } from "./client";
 import { valIcon } from "./tree";
 
 export function registerCommands(
@@ -63,8 +63,33 @@ export function registerCommands(
     }),
 
     vscode.commands.registerCommand("valtown.createVal", async () => {
-      const val = await client.createVal();
+      const template = await vscode.window.showQuickPick<
+        vscode.QuickPickItem & { value?: ValTemplate }
+      >(
+        [
+          { label: "New val" },
+          {
+            label: "HTTP handler",
+            value: "http",
+          },
+          {
+            label: "Scheduled function",
+            value: "cron",
+          },
+          {
+            label: "Email handler",
+            value: "email",
+          },
+        ],
+        {
+          title: "Select a template",
+        }
+      );
+      if (!template) {
+        return;
+      }
 
+      const val = await client.createVal(template.value);
       vscode.commands.executeCommand(
         "vscode.open",
         vscode.Uri.parse(

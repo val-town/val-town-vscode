@@ -32,7 +32,19 @@ export type Version = {
   runEndAt: string;
 };
 
-const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+const templates = {
+  http: `export default async function (req: Request): Promise<Response> {
+  return Response.json({ ok: true })
+}`,
+  email: `export default async function (email: Email) {
+
+}`,
+  cron: `export default async function (interval: Interval) {
+
+}`,
+};
+
+export type ValTemplate = keyof typeof templates;
 
 export class ValtownClient {
   private _uid: string | undefined;
@@ -81,15 +93,13 @@ export class ValtownClient {
     return this._uid;
   }
 
-  async createVal() {
-    const suffix = Array.from(
-      { length: 8 },
-      () => chars[Math.floor(Math.random() * chars.length)]
-    ).join("");
+  async createVal(template?: ValTemplate) {
+    // empty vals are not allowed, so we add a space
+    let code = template ? templates[template] : " ";
+    if (template) {
+      code = templates[template];
+    }
 
-    const code = `export async function untitled_${suffix}() {
-
-};`;
     const resp = await this.fetch(`${this.endpoint}/v1/vals`, {
       method: "POST",
       headers: {
