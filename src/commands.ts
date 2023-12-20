@@ -63,33 +63,7 @@ export function registerCommands(
     }),
 
     vscode.commands.registerCommand("valtown.createVal", async () => {
-      const template = await vscode.window.showQuickPick<
-        vscode.QuickPickItem & { value?: ValTemplate }
-      >(
-        [
-          { label: "New val" },
-          {
-            label: "HTTP handler",
-            value: "http",
-          },
-          {
-            label: "Scheduled function",
-            value: "cron",
-          },
-          {
-            label: "Email handler",
-            value: "email",
-          },
-        ],
-        {
-          title: "Select a template",
-        }
-      );
-      if (!template) {
-        return;
-      }
-
-      const val = await client.createVal(template.value);
+      const val = await client.createVal();
       vscode.commands.executeCommand(
         "vscode.open",
         vscode.Uri.parse(
@@ -101,6 +75,47 @@ export function registerCommands(
 
       vscode.commands.executeCommand("valtown.refresh");
     }),
+    vscode.commands.registerCommand(
+      "valtown.createValFromTemplate",
+      async () => {
+        const template = await vscode.window.showQuickPick<
+          vscode.QuickPickItem & { value: ValTemplate }
+        >(
+          [
+            {
+              label: "HTTP handler",
+              value: "http",
+            },
+            {
+              label: "Scheduled function",
+              value: "cron",
+            },
+            {
+              label: "Email handler",
+              value: "email",
+            },
+          ],
+          {
+            title: "Select a template",
+          }
+        );
+        if (!template) {
+          return;
+        }
+
+        const val = await client.createVal(template.value);
+        vscode.commands.executeCommand(
+          "vscode.open",
+          vscode.Uri.parse(
+            `val://${val.id}/${val.author?.username?.slice(1)}/${
+              val.name
+            }/mod.tsx`
+          )
+        );
+        vscode.commands.executeCommand("valtown.refresh");
+      }
+    ),
+
     vscode.commands.registerCommand("valtown.rename", async (arg) => {
       const valID = extractValID(arg);
 

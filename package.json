@@ -53,6 +53,12 @@
 				"command": "valtown.createVal",
 				"title": "Create Val",
 				"category": "Val Town",
+				"icon": "$(plus)"
+			},
+			{
+				"command": "valtown.createValFromTemplate",
+				"title": "Create Val from Template",
+				"category": "Val Town",
 				"icon": "$(new-file)"
 			},
 			{
@@ -225,6 +231,10 @@
 					"when": "valtown.loggedIn"
 				},
 				{
+					"command": "valtown.createValFromTemplate",
+					"when": "valtown.loggedIn"
+				},
+				{
 					"command": "valtown.deleteVal",
 					"when": "false"
 				},
@@ -324,6 +334,11 @@
 			"view/title": [
 				{
 					"command": "valtown.createVal",
+					"group": "navigation@1",
+					"when": "view == valtown && valtown.loggedIn"
+				},
+				{
+					"command": "valtown.createValFromTemplate",
 					"group": "navigation@1",
 					"when": "view == valtown && valtown.loggedIn"
 				},
