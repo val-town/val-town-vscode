@@ -43,6 +43,7 @@ export async function activate(context: vscode.ExtensionContext) {
       !!token
     );
     await vscode.commands.executeCommand("valtown.refresh");
+    await vscode.commands.executeCommand("valtown.blob.refresh");
   });
 
   vscode.workspace.onDidChangeConfiguration(async (e) => {
