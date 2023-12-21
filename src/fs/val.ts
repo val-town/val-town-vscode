@@ -76,7 +76,7 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
     options: { readonly create: boolean; readonly overwrite: boolean }
   ) {
     const filename = uri.path.split("/").pop() || "";
-    if (!(filename == "mod.ts" || filename == "mod.tsx")) {
+    if (!filename.endsWith(".tsx")) {
       return;
     }
 
