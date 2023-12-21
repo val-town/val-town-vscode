@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { BaseVal, FullVal, ValtownClient } from "../client";
+import { BaseVal, FullVal, ValPrivacy, ValtownClient } from "../client";
 
 export function valIcon(privacy: "public" | "private" | "unlisted") {
   switch (privacy) {
@@ -22,6 +22,11 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
     vscode.TreeItem | undefined | null | void
   > = this._onDidChangeTreeData.event;
   public pins: FullVal[] = [];
+  public filters: Record<ValPrivacy, boolean> = {
+    public: true,
+    private: true,
+    unlisted: true,
+  };
 
   refresh() {
     this._onDidChangeTreeData.fire();
@@ -80,28 +85,35 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
 
     switch (element.label) {
       case "Pinned Vals":
-        return this.pins.map((val) => {
-          return ValTreeView.valToTreeItem(val, "pins");
-        });
+        return this.pins
+          .filter((val) => this.filters[val.privacy])
+          .map((val) => {
+            return ValTreeView.valToTreeItem(val, "pins");
+          });
       case "Home Vals": {
         const vals = await this.client.listMyVals();
         if (!vals) {
           return [];
         }
 
-        return vals.map((val) => {
-          return ValTreeView.valToTreeItem(val, "home");
-        });
+        return vals
+          .filter((val) => this.filters[val.privacy])
+          .map((val) => {
+            return ValTreeView.valToTreeItem(val, "home");
+          });
       }
       case "Liked Vals": {
         const vals = await this.client.listLikedVals();
+
         if (!vals) {
           return [];
         }
 
-        return vals.map((val) => {
-          return ValTreeView.valToTreeItem(val, "likes");
-        });
+        return vals
+          .filter((val) => this.filters[val.privacy])
+          .map((val) => {
+            return ValTreeView.valToTreeItem(val, "likes");
+          });
       }
       default:
         return [];
@@ -124,6 +136,15 @@ export async function registerValTreeView(
     "valtown.pins",
     {}
   );
+  const filters = context.globalState.get<Record<ValPrivacy, boolean>>(
+    "valtown.filters",
+    {
+      public: true,
+      private: true,
+      unlisted: true,
+    }
+  );
+  tree.filters = filters;
   tree.pins = Object.values(pins);
   context.subscriptions.push(
     vscode.window.createTreeView("valtown.vals", {
@@ -160,6 +181,62 @@ export async function registerValTreeView(
       await context.globalState.update("valtown.pins", pinnedVals);
 
       tree.pins = Object.values(pinnedVals);
+      await tree.refresh();
+    }),
+    vscode.commands.registerCommand("valtown.val.setFilters", async () => {
+      const filters = context.globalState.get<Record<ValPrivacy, boolean>>(
+        "valtown.filters",
+        {
+          public: true,
+          private: true,
+          unlisted: true,
+        }
+      );
+      const picks = await vscode.window.showQuickPick<
+        vscode.QuickPickItem & { privacy: ValPrivacy }
+      >(
+        [
+          {
+            label: "Private",
+            description: "Show private vals",
+            picked: filters.private,
+            privacy: "private",
+          },
+          {
+            label: "Unlisted",
+            description: "Show unlisted vals",
+            picked: filters.unlisted,
+            privacy: "unlisted",
+          },
+          {
+            label: "Public",
+            description: "Show public vals",
+            picked: filters.public,
+            privacy: "public",
+          },
+        ],
+        {
+          title: "Filter Vals",
+          canPickMany: true,
+        }
+      );
+
+      if (!picks) {
+        return;
+      }
+
+      const newFilters = {
+        public: false,
+        private: false,
+        unlisted: false,
+      };
+
+      for (const pick of picks) {
+        newFilters[pick.privacy] = true;
+      }
+
+      await context.globalState.update("valtown.filters", newFilters);
+      tree.filters = newFilters;
       await tree.refresh();
     })
   );

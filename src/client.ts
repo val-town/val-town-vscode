@@ -1,8 +1,9 @@
+export type ValPrivacy = "public" | "private" | "unlisted";
 export type BaseVal = {
   id: string;
   name: string;
   code: string;
-  privacy: "public" | "private" | "unlisted";
+  privacy: ValPrivacy;
   version: number;
   runStartAt: string;
   runEndAt: string;

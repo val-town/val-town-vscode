@@ -239,6 +239,12 @@
 				"category": "Val Town",
 				"title": "Open in New Window",
 				"icon": "$(empty-window)"
+			},
+			{
+				"command": "valtown.val.setFilters",
+				"category": "Val Town",
+				"title": "Set Filters",
+				"icon": "$(filter)"
 			}
 		],
 		"configuration": [
@@ -374,6 +380,10 @@
 				{
 					"command": "valtown.blob.openInNewWindow",
 					"when": "false"
+				},
+				{
+					"command": "valtown.val.setFilters",
+					"when": "false"
 				}
 			],
 			"editor/title": [
@@ -396,8 +406,13 @@
 					"when": "view == valtown.vals && valtown.loggedIn"
 				},
 				{
-					"command": "valtown.refresh",
+					"command": "valtown.val.setFilters",
 					"group": "navigation@3",
+					"when": "view == valtown.vals && valtown.loggedIn"
+				},
+				{
+					"command": "valtown.refresh",
+					"group": "navigation@4",
 					"when": "view == valtown.vals && valtown.loggedIn"
 				},
 				{
