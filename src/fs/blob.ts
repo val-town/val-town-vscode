@@ -20,12 +20,26 @@ class BlobFileSystemProvider implements vscode.FileSystemProvider {
     await vscode.commands.executeCommand("valtown.blob.refresh");
   }
 
-  rename(
-    oldUri: vscode.Uri,
-    newUri: vscode.Uri,
+  async rename(
+    source: vscode.Uri,
+    destination: vscode.Uri,
     options: { readonly overwrite: boolean }
-  ): void | Thenable<void> {
-    vscode.window.showErrorMessage("Cannot rename files in ValTown");
+  ) {
+    const oldKey = source.path.slice(1);
+    const newKey = destination.path.slice(1);
+    await this.client.renameBlob(oldKey, newKey);
+    await vscode.commands.executeCommand("valtown.blob.refresh");
+  }
+
+  async copy(
+    source: vscode.Uri,
+    destination: vscode.Uri,
+    options: { readonly overwrite: boolean }
+  ) {
+    const oldKey = source.path.slice(1);
+    const newKey = destination.path.slice(1);
+    await this.client.copyBlob(oldKey, newKey);
+    await vscode.commands.executeCommand("valtown.blob.refresh");
   }
 
   async stat(uri: vscode.Uri) {
@@ -146,6 +160,21 @@ export function registerBlobFileSystemProvider(
     vscode.commands.registerCommand("valtown.blob.delete", async (arg) => {
       const key = arg.id;
       await vscode.workspace.fs.delete(vscode.Uri.parse(`vt+blob:/${key}`));
+    }),
+    vscode.commands.registerCommand("valtown.blob.rename", async (arg) => {
+      const key = arg.id;
+      const oldUri = vscode.Uri.parse(`vt+blob:/${key}`);
+      const newUri = await vscode.window.showSaveDialog({
+        defaultUri: oldUri,
+        saveLabel: "Rename",
+        title: "Rename blob",
+      });
+
+      if (!newUri) {
+        return;
+      }
+
+      await vscode.workspace.fs.rename(oldUri, newUri, { overwrite: true });
     })
   );
 }

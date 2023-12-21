@@ -219,6 +219,18 @@ export class ValtownClient {
     }
   }
 
+  async copyBlob(oldKey: string, newKey: string) {
+    const resp = await this.fetch(
+      `https://api.val.town/v1/blob/${encodeURIComponent(oldKey)}`
+    );
+    await this.writeBlob(newKey, new Uint8Array(await resp.arrayBuffer()));
+  }
+
+  async renameBlob(oldKey: string, newKey: string) {
+    await this.copyBlob(oldKey, newKey);
+    await this.deleteBlob(oldKey);
+  }
+
   async listVersions(valId: string) {
     let endpoint = `${this.endpoint}/v1/vals/${valId}/versions?limit=100`;
     const versions = [] as Version[];
