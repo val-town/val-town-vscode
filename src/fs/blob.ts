@@ -138,6 +138,7 @@ export function registerBlobFileSystemProvider(
       const fileContent = await vscode.workspace.fs.readFile(fileUri);
       await vscode.workspace.fs.writeFile(blobUri, fileContent);
       await vscode.window.showInformationMessage(`Uploaded ${filename}`);
+      await vscode.commands.executeCommand("valtown.blob.refresh");
     }),
     vscode.commands.registerCommand("valtown.blob.download", async (arg) => {
       const key = arg.id;
