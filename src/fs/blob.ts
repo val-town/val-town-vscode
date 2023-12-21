@@ -76,9 +76,7 @@ class BlobFileSystemProvider implements vscode.FileSystemProvider {
     return new vscode.Disposable(() => {});
   }
 
-  createDirectory(uri: vscode.Uri): void | Thenable<void> {
-    vscode.window.showErrorMessage("Cannot create directories in ValTown");
-  }
+  createDirectory(uri: vscode.Uri) {}
 
   async readDirectory(uri: vscode.Uri) {
     let prefix = uri.path.slice(1);
