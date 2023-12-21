@@ -5,6 +5,7 @@ export type BaseVal = {
   code: string;
   privacy: ValPrivacy;
   version: number;
+  createdAt: string;
   runStartAt: string;
   runEndAt: string;
   author: {

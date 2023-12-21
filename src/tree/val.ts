@@ -1,6 +1,13 @@
 import * as vscode from "vscode";
 import { BaseVal, FullVal, ValPrivacy, ValtownClient } from "../client";
 
+type ValSortField = "name" | "createdAt" | "runStartAt";
+
+type ValSort = {
+  field: ValSortField;
+  order: "asc" | "desc";
+} | null;
+
 export function valIcon(privacy: "public" | "private" | "unlisted") {
   switch (privacy) {
     case "public":
@@ -27,6 +34,10 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
     private: true,
     unlisted: true,
   };
+  public sort: ValSort = {
+    field: "createdAt",
+    order: "desc",
+  };
 
   refresh() {
     this._onDidChangeTreeData.fire();
@@ -49,6 +60,26 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
     };
 
     return treeItem;
+  }
+
+  sortFunc(a: BaseVal, b: BaseVal) {
+    if (!this.sort) {
+      return 0;
+    }
+    switch (this.sort.field) {
+      case "name":
+        return this.sort.order === "asc"
+          ? a.name.localeCompare(b.name)
+          : b.name.localeCompare(a.name);
+      case "createdAt":
+        return this.sort.order === "asc"
+          ? a.createdAt.localeCompare(b.createdAt)
+          : b.createdAt.localeCompare(a.createdAt);
+      case "runStartAt":
+        return this.sort.order === "asc"
+          ? a.runStartAt.localeCompare(b.runStartAt)
+          : b.runStartAt.localeCompare(a.runStartAt);
+    }
   }
 
   async getChildren(element?: vscode.TreeItem | undefined) {
@@ -87,6 +118,7 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
       case "Pinned Vals":
         return this.pins
           .filter((val) => this.filters[val.privacy])
+          .sort((a, b) => this.sortFunc(a, b))
           .map((val) => {
             return ValTreeView.valToTreeItem(val, "pins");
           });
@@ -98,6 +130,7 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
 
         return vals
           .filter((val) => this.filters[val.privacy])
+          .sort((a, b) => this.sortFunc(a, b))
           .map((val) => {
             return ValTreeView.valToTreeItem(val, "home");
           });
@@ -111,6 +144,7 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
 
         return vals
           .filter((val) => this.filters[val.privacy])
+          .sort((a, b) => this.sortFunc(a, b))
           .map((val) => {
             return ValTreeView.valToTreeItem(val, "likes");
           });
@@ -136,6 +170,7 @@ export async function registerValTreeView(
     "valtown.pins",
     {}
   );
+  tree.pins = Object.values(pins);
   const filters = context.globalState.get<Record<ValPrivacy, boolean>>(
     "valtown.filters",
     {
@@ -145,7 +180,8 @@ export async function registerValTreeView(
     }
   );
   tree.filters = filters;
-  tree.pins = Object.values(pins);
+  const sort = context.globalState.get<ValSort>("valtown.sort", null);
+  tree.sort = sort;
   context.subscriptions.push(
     vscode.window.createTreeView("valtown.vals", {
       treeDataProvider: tree,
@@ -155,11 +191,6 @@ export async function registerValTreeView(
 
   context.subscriptions.push(
     vscode.commands.registerCommand("valtown.refresh", async () => {
-      const pins = await context.globalState.get<Record<string, FullVal>>(
-        "valtown.pins",
-        {}
-      );
-      tree.pins = Object.values(pins);
       tree.refresh();
     }),
     vscode.commands.registerCommand("valtown.togglePinned", async (arg) => {
@@ -179,9 +210,73 @@ export async function registerValTreeView(
         pinnedVals[valID] = val;
       }
       await context.globalState.update("valtown.pins", pinnedVals);
-
       tree.pins = Object.values(pinnedVals);
       await tree.refresh();
+    }),
+    vscode.commands.registerCommand("valtown.val.setSort", async () => {
+      const field = await vscode.window.showQuickPick<
+        vscode.QuickPickItem & { value: ValSortField | null }
+      >(
+        [
+          {
+            label: "Sort by Name",
+            value: "name",
+          },
+          {
+            label: "Sort by Created At",
+            value: "createdAt",
+          },
+          {
+            label: "Sort by Last Run At",
+            value: "runStartAt",
+          },
+          {
+            label: "Clear Sort",
+            value: null,
+          },
+        ],
+        {
+          canPickMany: false,
+        }
+      );
+
+      if (!field) {
+        return;
+      }
+
+      if (field.value === null) {
+        await context.globalState.update("valtown.sort", null);
+        tree.sort = null;
+        tree.refresh();
+        return;
+      }
+
+      const order = await vscode.window.showQuickPick<
+        vscode.QuickPickItem & { value: "asc" | "desc" }
+      >([
+        {
+          label: "Ascending",
+          description: "Sort ascending",
+          value: "asc",
+        },
+        {
+          label: "Descending",
+          description: "Sort descending",
+          value: "desc",
+        },
+      ]);
+
+      if (!order) {
+        return;
+      }
+
+      const sort = {
+        field: field.value,
+        order: order.value,
+      };
+      await context.globalState.update("valtown.sort", sort);
+      tree.sort = sort;
+      tree.refresh();
     }),
     vscode.commands.registerCommand("valtown.val.setFilters", async () => {
       const filters = context.globalState.get<Record<ValPrivacy, boolean>>(

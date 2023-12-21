@@ -96,12 +96,6 @@
 				"icon": "$(refresh)"
 			},
 			{
-				"command": "valtown.openInBrowser",
-				"title": "Open Val in Browser",
-				"category": "Val Town",
-				"icon": "$(globe)"
-			},
-			{
 				"command": "valtown.open",
 				"title": "Open Val",
 				"category": "Val Town",
@@ -184,7 +178,8 @@
 			{
 				"command": "valtown.openValUrl",
 				"title": "Val URL",
-				"category": "Val Town"
+				"category": "Val Town",
+				"icon": "$(globe)"
 			},
 			{
 				"command": "valtown.openHttpEndpoint",
@@ -245,6 +240,12 @@
 				"category": "Val Town",
 				"title": "Set Filters",
 				"icon": "$(filter)"
+			},
+			{
+				"command": "valtown.val.setSort",
+				"category": "Val Town",
+				"title": "Set Sort",
+				"icon": "$(arrow-down)"
 			}
 		],
 		"configuration": [
@@ -295,10 +296,6 @@
 				},
 				{
 					"command": "valtown.refresh",
-					"when": "false"
-				},
-				{
-					"command": "valtown.openInBrowser",
 					"when": "false"
 				},
 				{
@@ -384,13 +381,22 @@
 				{
 					"command": "valtown.val.setFilters",
 					"when": "false"
+				},
+				{
+					"command": "valtown.val.setSort",
+					"when": "false"
 				}
 			],
 			"editor/title": [
 				{
+					"command": "valtown.openValUrl",
+					"group": "navigation@1",
+					"when": "resourceScheme == 'vt+val' && resourceLangId != markdown"
+				},
+				{
 					"command": "valtown.openReadmeToSide",
 					"alt": "valtown.openReadme",
-					"group": "navigation@1",
+					"group": "navigation@2",
 					"when": "resourceScheme == 'vt+val' && resourceLangId != markdown"
 				}
 			],
@@ -411,8 +417,13 @@
 					"when": "view == valtown.vals && valtown.loggedIn"
 				},
 				{
-					"command": "valtown.refresh",
+					"command": "valtown.val.setSort",
 					"group": "navigation@4",
+					"when": "view == valtown.vals && valtown.loggedIn"
+				},
+				{
+					"command": "valtown.refresh",
+					"group": "navigation@5",
 					"when": "view == valtown.vals && valtown.loggedIn"
 				},
 				{
