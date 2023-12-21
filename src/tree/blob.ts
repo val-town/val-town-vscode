@@ -37,6 +37,7 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
         treeItems[filepath] = {
           id: blob.key,
           contextValue: "blob",
+          description: `${blob.size / 1000} kb`,
           resourceUri: vscode.Uri.parse(`vt+blob://${uid}/${blob.key}`),
           iconPath: vscode.ThemeIcon.File,
           command: {
