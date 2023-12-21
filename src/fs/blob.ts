@@ -175,6 +175,16 @@ export function registerBlobFileSystemProvider(
       }
 
       await vscode.workspace.fs.rename(oldUri, newUri, { overwrite: true });
-    })
+    }),
+    vscode.commands.registerCommand(
+      "valtown.blob.openInNewWindow",
+      async () => {
+        await vscode.commands.executeCommand(
+          "vscode.openFolder",
+          vscode.Uri.parse("vt+blob:/"),
+          { forceNewWindow: true }
+        );
+      }
+    )
   );
 }
