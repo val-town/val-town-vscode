@@ -1,45 +1,39 @@
-import { ValtownClient } from "./client";
+import { ValtownClient } from "../client";
 import * as vscode from "vscode";
 
-export const FS_SCHEME = "val";
+export const FS_SCHEME = "vt+val";
 
-class ValtownFileSystemProvider implements vscode.FileSystemProvider {
-  constructor(private client: ValtownClient) { }
+class ValFileSystemProvider implements vscode.FileSystemProvider {
+  constructor(private client: ValtownClient) {}
 
   onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> =
-    new vscode.EventEmitter<
-      vscode.FileChangeEvent[]
-    >().event;
+    new vscode.EventEmitter<vscode.FileChangeEvent[]>().event;
 
   static extractVersion(uri: vscode.Uri) {
-    const match = uri.path.match(/@(\d+)/)
+    const match = uri.path.match(/@(\d+)/);
     if (match) {
       return parseInt(match[1]);
     }
   }
 
   async readFile(uri: vscode.Uri) {
-    const filename = uri.path.split("/").pop() || "";
+    const filename = uri.path.slice(1);
 
-    const val = await this.client.getVal(uri.authority, ValtownFileSystemProvider.extractVersion(uri));
+    const val = await this.client.getVal(
+      uri.authority,
+      ValFileSystemProvider.extractVersion(uri)
+    );
 
-
-
-    if (filename == "mod.ts" || filename == "mod.tsx") {
-      return new TextEncoder().encode(val.code || "")
+    if (filename.endsWith(".tsx")) {
+      return new TextEncoder().encode(val.code || "");
     } else if (filename === "README.md") {
-      return new TextEncoder().encode(val.readme || "")
-    } else if (filename === "val.json") {
-      return new TextEncoder().encode(JSON.stringify(val, null, 2))
-    }
-    else {
+      return new TextEncoder().encode(val.readme || "");
+    } else {
       throw new Error("Unknown file type");
     }
   }
 
-  delete(
-    uri: vscode.Uri,
-  ): void | Thenable<void> {
+  delete(uri: vscode.Uri): void | Thenable<void> {
     this.client.deleteVal(uri.authority);
     vscode.commands.executeCommand("valtown.refresh");
   }
@@ -47,13 +41,13 @@ class ValtownFileSystemProvider implements vscode.FileSystemProvider {
   rename(
     oldUri: vscode.Uri,
     newUri: vscode.Uri,
-    options: { readonly overwrite: boolean },
+    options: { readonly overwrite: boolean }
   ): void | Thenable<void> {
     vscode.window.showErrorMessage("Cannot rename files in ValTown");
   }
 
   async stat(uri: vscode.Uri) {
-    const version = ValtownFileSystemProvider.extractVersion(uri);
+    const version = ValFileSystemProvider.extractVersion(uri);
     const val = await this.client.getVal(uri.authority, version);
     const filename = uri.path.split("/").pop() || "";
     const uid = await this.client.uid();
@@ -79,7 +73,7 @@ class ValtownFileSystemProvider implements vscode.FileSystemProvider {
   async writeFile(
     uri: vscode.Uri,
     content: Uint8Array,
-    options: { readonly create: boolean; readonly overwrite: boolean },
+    options: { readonly create: boolean; readonly overwrite: boolean }
   ) {
     const filename = uri.path.split("/").pop() || "";
     if (!(filename == "mod.ts" || filename == "mod.tsx")) {
@@ -88,7 +82,7 @@ class ValtownFileSystemProvider implements vscode.FileSystemProvider {
 
     await this.client.writeVal(
       uri.authority,
-      new TextDecoder().decode(content),
+      new TextDecoder().decode(content)
     );
 
     vscode.commands.executeCommand("valtown.refresh");
@@ -99,9 +93,9 @@ class ValtownFileSystemProvider implements vscode.FileSystemProvider {
     options: {
       readonly recursive: boolean;
       readonly excludes: readonly string[];
-    },
+    }
   ): vscode.Disposable {
-    return new vscode.Disposable(() => { });
+    return new vscode.Disposable(() => {});
   }
 
   createDirectory(uri: vscode.Uri): void | Thenable<void> {
@@ -109,15 +103,15 @@ class ValtownFileSystemProvider implements vscode.FileSystemProvider {
   }
 
   readDirectory(
-    uri: vscode.Uri,
+    uri: vscode.Uri
   ): [string, vscode.FileType][] | Thenable<[string, vscode.FileType][]> {
     vscode.window.showErrorMessage("Cannot read directories in ValTown");
     return [];
   }
 }
 
-export function registerFileSystemProvider(client: ValtownClient) {
-  const fs = new ValtownFileSystemProvider(client);
+export function registerValFileSystemProvider(client: ValtownClient) {
+  const fs = new ValFileSystemProvider(client);
 
   return vscode.workspace.registerFileSystemProvider(FS_SCHEME, fs);
 }

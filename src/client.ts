@@ -12,6 +12,12 @@ export type BaseVal = {
   };
 };
 
+export type Blob = {
+  key: string;
+  size: number;
+  lastModified: string;
+};
+
 export type FullVal = BaseVal & {
   readme: string;
 };
@@ -159,6 +165,58 @@ export class ValtownClient {
     }
 
     return vals;
+  }
+
+  async listBlobs(prefix?: string) {
+    const resp = await this.fetch(
+      prefix
+        ? `${this.endpoint}/v1/blob?prefix=${encodeURIComponent(prefix)}`
+        : `${this.endpoint}/v1/blob`
+    );
+    if (!resp.ok) {
+      throw new Error("Failed to list blobs");
+    }
+
+    return resp.json() as Promise<Blob[]>;
+  }
+
+  async readBlob(key: string) {
+    const resp = await this.fetch(
+      `${this.endpoint}/v1/blob/${encodeURIComponent(key)}`
+    );
+
+    if (!resp.ok) {
+      throw new Error("Failed to get blob");
+    }
+
+    return new Uint8Array(await resp.arrayBuffer());
+  }
+
+  async writeBlob(key: string, data: Uint8Array) {
+    const resp = await this.fetch(
+      `${this.endpoint}/v1/blob/${encodeURIComponent(key)}`,
+      {
+        method: "POST",
+        body: data,
+      }
+    );
+
+    if (!resp.ok) {
+      throw new Error("Failed to write blob");
+    }
+  }
+
+  async deleteBlob(key: string) {
+    const resp = await this.fetch(
+      `${this.endpoint}/v1/blob/${encodeURIComponent(key)}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (!resp.ok) {
+      throw new Error("Failed to delete blob");
+    }
   }
 
   async listVersions(valId: string) {

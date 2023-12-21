@@ -2,9 +2,11 @@
 
 import * as vscode from "vscode";
 
-import { registerTreeView } from "./tree";
+import { registerValTreeView } from "./tree/val";
+import { registerBlobTreeView } from "./tree/blob";
 import { ValtownClient } from "./client";
-import { registerFileSystemProvider } from "./fs";
+import { registerValFileSystemProvider } from "./fs/val";
+import { registerBlobFileSystemProvider } from "./fs/blob";
 import { loadToken } from "./secrets";
 import { registerCommands } from "./commands";
 import { registerUriHandler } from "./uri";
@@ -14,13 +16,17 @@ export async function activate(context: vscode.ExtensionContext) {
   const outputChannel = vscode.window.createOutputChannel("Val Town");
   context.subscriptions.push(outputChannel);
 
-  const config = vscode.workspace.getConfiguration("valtown")
+  const config = vscode.workspace.getConfiguration("valtown");
   const endpoint = config.get<string>("endpoint", "https://api.val.town");
-  outputChannel.appendLine(`Using endpoint: ${endpoint}`)
+  outputChannel.appendLine(`Using endpoint: ${endpoint}`);
 
   let token = await loadToken(context);
   if (token) {
-    await vscode.commands.executeCommand("setContext", "valtown.loggedIn", true)
+    await vscode.commands.executeCommand(
+      "setContext",
+      "valtown.loggedIn",
+      true
+    );
   }
 
   const client = new ValtownClient(endpoint, token);
@@ -31,10 +37,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
     const token = await loadToken(context);
     client.setToken(token);
-    await vscode.commands.executeCommand("setContext", "valtown.loggedIn", !!token)
-    await vscode.commands.executeCommand("valtown.refresh")
-  })
-
+    await vscode.commands.executeCommand(
+      "setContext",
+      "valtown.loggedIn",
+      !!token
+    );
+    await vscode.commands.executeCommand("valtown.refresh");
+  });
 
   vscode.workspace.onDidChangeConfiguration(async (e) => {
     if (!e.affectsConfiguration("valtown.endpoint")) {
@@ -43,22 +52,25 @@ export async function activate(context: vscode.ExtensionContext) {
 
     const token = await loadToken(context);
     client.setToken(token);
-    await vscode.commands.executeCommand("setContext", "valtown.ready", token !== undefined)
-    await vscode.commands.executeCommand("valtown.refresh")
-  })
-
-
-
+    await vscode.commands.executeCommand(
+      "setContext",
+      "valtown.ready",
+      token !== undefined
+    );
+    await vscode.commands.executeCommand("valtown.refresh");
+  });
 
   outputChannel.appendLine("Registering uri handler");
   registerUriHandler(context);
   outputChannel.appendLine("Registering tree view");
-  registerTreeView(context, client);
+  registerValTreeView(context, client);
+  registerBlobTreeView(context, client);
   outputChannel.appendLine("Registering file system provider");
-  registerFileSystemProvider(client);
+  registerBlobFileSystemProvider(context, client);
+  registerValFileSystemProvider(client);
   outputChannel.appendLine("Registering commands");
   registerCommands(context, client);
   outputChannel.appendLine("ValTown extension activated");
 }
 
-export async function deactivate() { }
+export async function deactivate() {}

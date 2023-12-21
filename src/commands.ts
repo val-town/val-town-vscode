@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { clearToken, saveToken } from "./secrets";
 import { ValTemplate, ValtownClient } from "./client";
-import { valIcon } from "./tree";
+import { valIcon } from "./tree/val";
 
 export function registerCommands(
   context: vscode.ExtensionContext,
@@ -66,11 +66,7 @@ export function registerCommands(
       const val = await client.createVal();
       vscode.commands.executeCommand(
         "vscode.open",
-        vscode.Uri.parse(
-          `val://${val.id}/${val.author?.username?.slice(1)}/${
-            val.name
-          }/mod.tsx`
-        )
+        vscode.Uri.parse(`vt+val://${val.id}/${val.name}.tsx`)
       );
 
       vscode.commands.executeCommand("valtown.refresh");
@@ -106,11 +102,7 @@ export function registerCommands(
         const val = await client.createVal(template.value);
         vscode.commands.executeCommand(
           "vscode.open",
-          vscode.Uri.parse(
-            `val://${val.id}/${val.author?.username?.slice(1)}/${
-              val.name
-            }/mod.tsx`
-          )
+          vscode.Uri.parse(`vt+val://${val.id}/${val.name}.tsx`)
         );
         vscode.commands.executeCommand("valtown.refresh");
       }
@@ -187,17 +179,21 @@ export function registerCommands(
       await client.setPrivacy(valID, "private");
       await vscode.commands.executeCommand("valtown.refresh");
     }),
-    vscode.commands.registerCommand("valtown.viewReadme", async (arg) => {
+    vscode.commands.registerCommand("valtown.openReadme", async (arg) => {
       const valID = extractValID(arg);
-      const val = await client.getVal(valID);
       vscode.commands.executeCommand(
         "vscode.openWith",
-        vscode.Uri.parse(
-          `val://${valID}/${val.author?.username?.slice(1)}/${
-            val.name
-          }/README.md`
-        ),
+        vscode.Uri.parse(`vt+val://${valID}/README.md`),
         "vscode.markdown.preview.editor"
+      );
+    }),
+    vscode.commands.registerCommand("valtown.openReadmeToSide", async (arg) => {
+      const valID = extractValID(arg);
+      vscode.commands.executeCommand(
+        "vscode.openWith",
+        vscode.Uri.parse(`vt+val://${valID}/README.md`),
+        "vscode.markdown.preview.editor",
+        vscode.ViewColumn.Beside
       );
     }),
     vscode.commands.registerCommand("valtown.copyModuleURL", async (arg) => {
@@ -300,47 +296,7 @@ export function registerCommands(
       const val = await client.getVal(valID);
       return vscode.commands.executeCommand(
         "vscode.open",
-        vscode.Uri.parse(
-          `val://${val.id}/${val.author?.username?.slice(1)}/${
-            val.name
-          }/mod.tsx`
-        )
-      );
-    }),
-    vscode.commands.registerCommand("valtown.diff", async (arg) => {
-      const valID = extractValID(arg);
-      const val = await client.getVal(valID);
-      const versions = await client.listVersions(valID);
-      if (versions.length < 2) {
-        vscode.window.showErrorMessage("Val has no previous versions");
-        return;
-      }
-      const pick = await vscode.window.showQuickPick<
-        { version: number } & vscode.QuickPickItem
-      >(
-        versions.slice(1).map((version) => ({
-          label: `v${version.version}`,
-          description: new Date(version.runStartAt).toLocaleString(),
-          version: version.version,
-        })),
-        { title: "Select a version to open" }
-      );
-      if (!pick) {
-        return;
-      }
-
-      return vscode.commands.executeCommand(
-        "vscode.diff",
-        vscode.Uri.parse(
-          `val://${val.id}/${val.author?.username?.slice(1)}/${val.name}@${
-            pick.version
-          }/mod.tsx`
-        ),
-        vscode.Uri.parse(
-          `val://${val.id}/${val.author?.username?.slice(1)}/${
-            val.name
-          }@/mod.tsx`
-        )
+        vscode.Uri.parse(`vt+val://${val.id}/${val.name}.tsx`)
       );
     }),
     vscode.commands.registerCommand("valtown.quickOpen", async () => {
@@ -363,9 +319,7 @@ export function registerCommands(
       return vscode.commands.executeCommand(
         "vscode.open",
         vscode.Uri.parse(
-          `val://${val.id}/${val.author?.username?.slice(1)}/${
-            val.name
-          }/mod.tsx`
+          `vt+val://${val.id}/${val.author?.username?.slice(1)}/${val.name}.tsx`
         )
       );
     })

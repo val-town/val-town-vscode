@@ -20,7 +20,8 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onFileSystem:val"
+		"onFileSystem:vt+val",
+		"onFileSystem:vt+blob"
 	],
 	"browser": "./dist/extension.js",
 	"contributes": {
@@ -36,14 +37,23 @@
 		"views": {
 			"valtown": [
 				{
-					"id": "valtown",
-					"name": "Val Town"
+					"id": "valtown.vals",
+					"name": "Vals"
+				},
+				{
+					"id": "valtown.blobs",
+					"name": "Blobs"
 				}
 			]
 		},
 		"viewsWelcome": [
 			{
-				"view": "valtown",
+				"view": "valtown.vals",
+				"contents": "Set your Val Town token to use this extension.\n[Set Token](command:valtown.setToken)\n[API Tokens](https://www.val.town/settings/api)",
+				"when": "!valtown.loggedIn"
+			},
+			{
+				"view": "valtown.blobs",
 				"contents": "Set your Val Town token to use this extension.\n[Set Token](command:valtown.setToken)\n[API Tokens](https://www.val.town/settings/api)",
 				"when": "!valtown.loggedIn"
 			}
@@ -68,10 +78,16 @@
 				"icon": "$(trash)"
 			},
 			{
-				"command": "valtown.viewReadme",
-				"title": "View Readme",
+				"command": "valtown.openReadme",
+				"title": "Open Readme",
 				"category": "Val Town",
 				"icon": "$(book)"
+			},
+			{
+				"command": "valtown.openReadmeToSide",
+				"title": "Open Readme to the Side",
+				"category": "Val Town",
+				"icon": "$(open-preview)"
 			},
 			{
 				"command": "valtown.refresh",
@@ -123,6 +139,11 @@
 				"title": "Open Val...",
 				"category": "Val Town",
 				"icon": "$(file-code)"
+			},
+			{
+				"command": "valtown.blob.quickOpen",
+				"title": "Open Blob...",
+				"category": "Val Town"
 			},
 			{
 				"command": "copyValID",
@@ -191,9 +212,27 @@
 				"title": "Toggle Pinned"
 			},
 			{
-				"command": "valtown.diff",
+				"command": "valtown.blob.refresh",
 				"category": "Val Town",
-				"title": "Compare With Previous Version"
+				"title": "Refresh",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "valtown.blob.delete",
+				"category": "Val Town",
+				"title": "Delete"
+			},
+			{
+				"command": "valtown.blob.upload",
+				"category": "Val Town",
+				"title": "Upload Blob",
+				"icon": "$(cloud-upload)"
+			},
+			{
+				"command": "valtown.blob.download",
+				"category": "Val Town",
+				"title": "Download",
+				"icon": "$(cloud-download)"
 			}
 		],
 		"configuration": [
@@ -223,10 +262,6 @@
 					"when": "valtown.loggedIn"
 				},
 				{
-					"command": "valtown.diff",
-					"when": "valtown.loggedIn && resourceScheme == val"
-				},
-				{
 					"command": "valtown.createVal",
 					"when": "valtown.loggedIn"
 				},
@@ -239,7 +274,11 @@
 					"when": "false"
 				},
 				{
-					"command": "valtown.viewReadme",
+					"command": "valtown.openReadme",
+					"when": "false"
+				},
+				{
+					"command": "valtown.openReadmeToSide",
 					"when": "false"
 				},
 				{
@@ -252,10 +291,6 @@
 				},
 				{
 					"command": "valtown.open",
-					"when": "false"
-				},
-				{
-					"command": "valtown.rename",
 					"when": "false"
 				},
 				{
@@ -317,35 +352,53 @@
 				{
 					"command": "valtown.togglePinned",
 					"when": "false"
+				},
+				{
+					"command": "valtown.blob.refresh",
+					"when": "false"
+				},
+				{
+					"command": "valtown.blob.delete",
+					"when": "false"
+				},
+				{
+					"command": "valtown.blob.download",
+					"when": "false"
 				}
 			],
 			"editor/title": [
 				{
-					"command": "valtown.viewReadme",
+					"command": "valtown.openReadmeToSide",
+					"alt": "valtown.openReadme",
 					"group": "navigation@1",
-					"when": "resourceScheme == val && resourceLangId != markdown"
-				},
-				{
-					"command": "valtown.open",
-					"group": "navigation@1",
-					"when": "resourceScheme == val && resourceLangId == markdown"
+					"when": "resourceScheme == 'vt+val' && resourceLangId != markdown"
 				}
 			],
 			"view/title": [
 				{
 					"command": "valtown.createVal",
 					"group": "navigation@1",
-					"when": "view == valtown && valtown.loggedIn"
+					"when": "view == valtown.vals && valtown.loggedIn"
 				},
 				{
 					"command": "valtown.createValFromTemplate",
-					"group": "navigation@1",
-					"when": "view == valtown && valtown.loggedIn"
+					"group": "navigation@2",
+					"when": "view == valtown.vals && valtown.loggedIn"
 				},
 				{
 					"command": "valtown.refresh",
+					"group": "navigation@3",
+					"when": "view == valtown.vals && valtown.loggedIn"
+				},
+				{
+					"command": "valtown.blob.upload",
+					"group": "navigation@1",
+					"when": "view == valtown.blobs && valtown.loggedIn"
+				},
+				{
+					"command": "valtown.blob.refresh",
 					"group": "navigation@2",
-					"when": "view == valtown && valtown.loggedIn"
+					"when": "view == valtown.blobs && valtown.loggedIn"
 				}
 			],
 			"view/item/context": [
@@ -378,6 +431,16 @@
 					"command": "valtown.deleteVal",
 					"group": "navigation@6",
 					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.blob.download",
+					"group": "navigation@1",
+					"when": "viewItem == blob"
+				},
+				{
+					"command": "valtown.blob.delete",
+					"group": "navigation@2",
+					"when": "viewItem == blob"
 				}
 			],
 			"valtown.submenus.privacy": [
