@@ -10,6 +10,7 @@ import { registerBlobFileSystemProvider } from "./fs/blob";
 import { loadToken } from "./secrets";
 import { registerCommands } from "./commands";
 import { registerUriHandler } from "./uri";
+import * as definition from "./definition";
 
 export async function activate(context: vscode.ExtensionContext) {
   // set output channel
@@ -69,6 +70,7 @@ export async function activate(context: vscode.ExtensionContext) {
   outputChannel.appendLine("Registering file system provider");
   registerBlobFileSystemProvider(context, client);
   registerValFileSystemProvider(client);
+  definition.register(client, context);
   outputChannel.appendLine("Registering commands");
   registerCommands(context, client);
   outputChannel.appendLine("ValTown extension activated");
