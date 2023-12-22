@@ -1,19 +1,28 @@
 import * as vscode from "vscode";
+import { ValtownClient } from "./client";
 
-class ValtownUriHandler implements vscode.UriHandler {
-	public async handleUri(uri: vscode.Uri) {
-		const params = new URLSearchParams(uri.query);
-		switch (uri.path) {
-			case "/open":
-				const valID = params.get("val");
-				vscode.commands.executeCommand("valtown.open", valID);
-				break;
-			default:
-				vscode.window.showErrorMessage(`Unknown valtown uri: ${uri.toString()}`);
-		}
-	}
-}
+export function registerUriHandler(
+  context: vscode.ExtensionContext,
+  client: ValtownClient
+) {
+  context.subscriptions.push(
+    vscode.window.registerUriHandler({
+      async handleUri(uri) {
+        const parts = uri.path.slice(1).split("/");
+        if (parts.length !== 3 || parts[0] !== "v") {
+          vscode.window.showErrorMessage(
+            `Invalid valtown URI: ${uri.toString()}`
+          );
+          return;
+        }
 
-export function registerUriHandler(context: vscode.ExtensionContext) {
-	context.subscriptions.push(vscode.window.registerUriHandler(new ValtownUriHandler()))
+        const [_, author, name] = parts;
+        const val = await client.resolveVal(author, name);
+        vscode.commands.executeCommand(
+          "vscode.open",
+          vscode.Uri.parse(`vt+val://${val.id}/${val.name}.tsx`)
+        );
+      },
+    })
+  );
 }

@@ -65,7 +65,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   outputChannel.appendLine("Registering uri handler");
-  registerUriHandler(context);
+  registerUriHandler(context, client);
   outputChannel.appendLine("Registering tree view");
   registerValTreeView(context, client);
   registerBlobTreeView(context, client);
