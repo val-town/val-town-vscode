@@ -283,6 +283,11 @@
 				"category": "Val Town",
 				"title": "Run Query",
 				"icon": "$(play)"
+			},
+			{
+				"command": "valtown.sqlite.previewTable",
+				"category": "Val Town",
+				"title": "Preview Table"
 			}
 		],
 		"configuration": [
@@ -434,6 +439,10 @@
 				{
 					"command": "valtown.sqlite.copyColumnName",
 					"when": "false"
+				},
+				{
+					"command": "valtown.sqlite.previewTable",
+					"when": "false"
 				}
 			],
 			"editor/title": [
@@ -548,8 +557,13 @@
 					"when": "viewItem == blob"
 				},
 				{
-					"command": "valtown.sqlite.copyTableName",
+					"command": "valtown.sqlite.previewTable",
 					"group": "navigation@1",
+					"when": "view == valtown.sqlite && viewItem == table"
+				},
+				{
+					"command": "valtown.sqlite.copyTableName",
+					"group": "navigation@2",
 					"when": "view == valtown.sqlite && viewItem == table"
 				},
 				{

@@ -26,9 +26,11 @@ export function register(
             return record;
           });
 
-          return new Parser().parse(records);
+          return new Parser({
+            fields: columns,
+          }).parse(records);
         } catch (e: any) {
-          vscode.window.showErrorMessage(e.message);
+          return e.message;
         }
       },
     })
