@@ -2,14 +2,16 @@
 
 import * as vscode from "vscode";
 
-import { registerValTreeView } from "./tree/val";
-import { registerBlobTreeView } from "./tree/blob";
+import { registerValTreeView } from "./val/tree";
+import { registerBlobTreeView } from "./blob/fs";
 import { ValtownClient } from "./client";
-import { registerValFileSystemProvider } from "./fs/val";
-import { registerBlobFileSystemProvider } from "./fs/blob";
+import { registerValFileSystemProvider } from "./val/fs";
+import { registerSqliteTreeView } from "./sqlite/tree";
+import { registerBlobFileSystemProvider } from "./blob/tree";
 import { loadToken } from "./secrets";
 import { registerCommands } from "./commands";
 import { registerUriHandler } from "./uri";
+import * as sqliteDoc from "./sqlite/document";
 import * as definition from "./definition";
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -67,6 +69,9 @@ export async function activate(context: vscode.ExtensionContext) {
   outputChannel.appendLine("Registering tree view");
   registerValTreeView(context, client);
   registerBlobTreeView(context, client);
+  registerSqliteTreeView(context, client);
+  sqliteDoc.register(context, client);
+  registerSqliteTreeView;
   outputChannel.appendLine("Registering file system provider");
   registerBlobFileSystemProvider(context, client);
   registerValFileSystemProvider(client);

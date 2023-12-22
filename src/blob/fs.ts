@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { FullVal, ValtownClient, Blob } from "../client";
+import { ValtownClient } from "../client";
 
 export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
   constructor(private client: ValtownClient) {}

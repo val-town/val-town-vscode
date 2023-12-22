@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { clearToken, saveToken } from "./secrets";
 import { ValTemplate, ValtownClient } from "./client";
-import { valIcon } from "./tree/val";
+import { valIcon } from "./val/tree";
 
 export function registerCommands(
   context: vscode.ExtensionContext,

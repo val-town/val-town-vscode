@@ -14,6 +14,16 @@ export type BaseVal = {
   };
 };
 
+// We patch these types to only support JSON values
+export type InValue = null | string | number | boolean;
+export type InArgs = Array<InValue> | Record<string, InValue>;
+export type InStatement =
+  | {
+      sql: string;
+      args: InArgs;
+    }
+  | string;
+
 export type Blob = {
   key: string;
   size: number;
@@ -340,5 +350,18 @@ export class ValtownClient {
     }
 
     return resp.json();
+  }
+
+  async execute(statement: InStatement) {
+    const res = await this.fetch(`${this.endpoint}/v1/sqlite/execute`, {
+      method: "POST",
+      body: JSON.stringify({ statement }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to execute statement");
+    }
+
+    return res.json();
   }
 }

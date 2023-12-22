@@ -43,6 +43,10 @@
 				{
 					"id": "valtown.blobs",
 					"name": "Blobs"
+				},
+				{
+					"id": "valtown.sqlite",
+					"name": "SQLite"
 				}
 			]
 		},
@@ -54,6 +58,11 @@
 			},
 			{
 				"view": "valtown.blobs",
+				"contents": "Set your Val Town token to use this extension.\n[Set Token](command:valtown.setToken)\n[API Tokens](https://www.val.town/settings/api)",
+				"when": "!valtown.loggedIn"
+			},
+			{
+				"view": "valtown.sqlite",
 				"contents": "Set your Val Town token to use this extension.\n[Set Token](command:valtown.setToken)\n[API Tokens](https://www.val.town/settings/api)",
 				"when": "!valtown.loggedIn"
 			}
@@ -246,6 +255,34 @@
 				"category": "Val Town",
 				"title": "Set Sort",
 				"icon": "$(arrow-down)"
+			},
+			{
+				"command": "valtown.sqlite.refresh",
+				"category": "Val Town",
+				"title": "Refresh",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "valtown.sqlite.copyTableName",
+				"category": "Val Town",
+				"title": "Copy Table Name"
+			},
+			{
+				"command": "valtown.sqlite.copyColumnName",
+				"category": "Val Town",
+				"title": "Copy Column Name"
+			},
+			{
+				"command": "valtown.sqlite.newQuery",
+				"category": "Val Town",
+				"title": "New Query",
+				"icon": "$(new-file)"
+			},
+			{
+				"command": "valtown.sqlite.runQuery",
+				"category": "Val Town",
+				"title": "Run Query",
+				"icon": "$(play)"
 			}
 		],
 		"configuration": [
@@ -385,6 +422,18 @@
 				{
 					"command": "valtown.val.setSort",
 					"when": "false"
+				},
+				{
+					"command": "valtown.sqlite.refresh",
+					"when": "false"
+				},
+				{
+					"command": "valtown.sqlite.copyTableName",
+					"when": "false"
+				},
+				{
+					"command": "valtown.sqlite.copyColumnName",
+					"when": "false"
 				}
 			],
 			"editor/title": [
@@ -398,6 +447,11 @@
 					"alt": "valtown.openReadme",
 					"group": "navigation@2",
 					"when": "resourceScheme == 'vt+val' && resourceLangId != markdown"
+				},
+				{
+					"command": "valtown.sqlite.runQuery",
+					"group": "navigation@1",
+					"when": "resourceLangId == sql && valtown.loggedIn"
 				}
 			],
 			"view/title": [
@@ -440,6 +494,16 @@
 					"command": "valtown.blob.refresh",
 					"group": "navigation@3",
 					"when": "view == valtown.blobs && valtown.loggedIn"
+				},
+				{
+					"command": "valtown.sqlite.newQuery",
+					"group": "navigation@1",
+					"when": "view == valtown.sqlite && valtown.loggedIn"
+				},
+				{
+					"command": "valtown.sqlite.refresh",
+					"group": "navigation@2",
+					"when": "view == valtown.sqlite && valtown.loggedIn"
 				}
 			],
 			"view/item/context": [
@@ -482,6 +546,16 @@
 					"command": "valtown.blob.delete",
 					"group": "navigation@2",
 					"when": "viewItem == blob"
+				},
+				{
+					"command": "valtown.sqlite.copyTableName",
+					"group": "navigation@1",
+					"when": "view == valtown.sqlite && viewItem == table"
+				},
+				{
+					"command": "valtown.sqlite.copyColumnName",
+					"group": "navigation@2",
+					"when": "view == valtown.sqlite && viewItem == column"
 				}
 			],
 			"valtown.submenus.privacy": [
@@ -592,5 +666,8 @@
 		"typescript": "^5.2.2",
 		"webpack": "^5.89.0",
 		"webpack-cli": "^5.1.4"
+	},
+	"dependencies": {
+		"@json2csv/plainjs": "^7.0.4"
 	}
 }
