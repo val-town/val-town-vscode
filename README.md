@@ -1,11 +1,21 @@
 # Val Town - VS Code Integration
 
-Author your vals from the comfort of VS Code.
+Use Val Town from the comfort of VS Code.
 
-![screenshot of the extension](https://raw.githubusercontent.com/pomdtr/valtown-vscode/master/img/screenshot.png)
+## Setup
+
+Use the `Val Town: Set Token` command to set your api token, that you can get from the [Val Town Website](https://www.val.town/settings/api).
 
 ## Features
 
-- Side Bar for viewing and editing vals
-- Edit your vals in a text editor
-- Diff val with previous versions
+### Author Vals from VS Code
+
+![val demo](https://raw.githubusercontent.com/pomdtr/valtown-vscode/master/img/vals.png)
+
+### Edit/Manage your Blobs
+
+![blob demo](https://raw.githubusercontent.com/pomdtr/valtown-vscode/master/img/blobs.png)
+
+### Run SQLite Queries
+
+![sqlite demo](https://raw.githubusercontent.com/pomdtr/valtown-vscode/master/img/sqlite.png)
