@@ -109,17 +109,22 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
       );
     }
 
-    const user = await this.client.user();
-    element.url = element.url.replace("${uid}", user.id);
-    const vals = await this.client.paginate(element.url);
-    return vals.map((val) =>
-      valToTreeItem(
-        val,
-        hasDeps(val)
-          ? vscode.TreeItemCollapsibleState.Collapsed
-          : vscode.TreeItemCollapsibleState.None
-      )
-    );
+    if ("url" in element) {
+      const user = await this.client.user();
+      element.url = element.url.replace("${uid}", user.id);
+      const vals = await this.client.paginate(element.url);
+      return vals.map((val) =>
+        valToTreeItem(
+          val,
+          hasDeps(val)
+            ? vscode.TreeItemCollapsibleState.Collapsed
+            : vscode.TreeItemCollapsibleState.None
+        )
+      );
+    }
+
+    // TODO: This is a bit of a hack, but it works for now
+    throw new Error("Unknown element");
   }
 
   getTreeItem(
