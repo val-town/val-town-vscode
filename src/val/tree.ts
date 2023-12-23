@@ -358,6 +358,12 @@ export async function registerValTreeView(
   context.subscriptions.push(
     vscode.commands.registerCommand("valtown.refresh", async () => {
       valTree.refresh();
+    }),
+    vscode.commands.registerCommand("valtown.pins.config", async () => {
+      await vscode.commands.executeCommand(
+        "workbench.action.openSettings",
+        "valtown.pins"
+      );
     })
   );
 }

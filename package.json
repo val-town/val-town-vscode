@@ -296,6 +296,12 @@
 				"command": "valtown.sqlite.dropTable",
 				"category": "Val Town",
 				"title": "Drop Table"
+			},
+			{
+				"command": "valtown.pins.config",
+				"category": "Val Town",
+				"title": "Configure Pins",
+				"icon": "$(gear)"
 			}
 		],
 		"configuration": [
@@ -312,7 +318,8 @@
 						"type": "array",
 						"description": "Pinned Vals.",
 						"items": {
-							"type": "string"
+							"type": "string",
+							"pattern": "^@[a-zA-Z0-9_]+/[a-zA-Z0-9_]+$"
 						}
 					},
 					"valtown.folders": {
@@ -481,6 +488,10 @@
 				{
 					"command": "valtown.sqlite.dropTable",
 					"when": "false"
+				},
+				{
+					"command": "valtown.pins.config",
+					"when": "false"
 				}
 			],
 			"editor/title": [
@@ -541,6 +552,11 @@
 					"command": "valtown.sqlite.refresh",
 					"group": "navigation@2",
 					"when": "view == valtown.sqlite && valtown.loggedIn"
+				},
+				{
+					"command": "valtown.pins.config",
+					"group": "navigation@1",
+					"when": "view == valtown.pins"
 				}
 			],
 			"view/item/context": [
