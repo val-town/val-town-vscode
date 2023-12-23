@@ -286,11 +286,11 @@ class ReferenceTreeViewProvider
       return [];
     }
 
-    const esmUrl = `"https://esm.town/v/${author}/${filename.split(".")[0]}"`;
+    const esmUrl = `https://esm.town/v/${author}/${filename.split(".")[0]}`;
     const vals = await (
       await this.client.searchVals(esmUrl)
     ).filter((val) => {
-      return val.code.includes(esmUrl);
+      return val.code.includes(esmUrl + '"') || val.code.includes(esmUrl + "?");
     });
 
     if (vals.length === 0) {
