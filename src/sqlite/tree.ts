@@ -124,6 +124,25 @@ export async function registerSqliteTreeView(
         const doc = await vscode.workspace.openTextDocument(uri);
         await vscode.window.showTextDocument(doc, vscode.ViewColumn.Active);
       }
+    ),
+    vscode.commands.registerCommand(
+      "valtown.sqlite.dropTable",
+      async (node) => {
+        const table = node.label;
+
+        const confirm = await vscode.window.showWarningMessage(
+          `Are you sure you want to delete table ${table}?`,
+          { modal: true },
+          "Delete"
+        );
+
+        if (confirm !== "Delete") {
+          return;
+        }
+
+        await client.execute(`DROP TABLE ${table};`);
+        tree.refresh();
+      }
     )
   );
 }
