@@ -41,6 +41,14 @@
 					"name": "Vals"
 				},
 				{
+					"id": "valtown.references",
+					"name": "References"
+				},
+				{
+					"id": "valtown.dependencies",
+					"name": "Dependencies"
+				},
+				{
 					"id": "valtown.blobs",
 					"name": "Blobs"
 				},
@@ -55,6 +63,16 @@
 				"view": "valtown.vals",
 				"contents": "Set your Val Town token to use this extension.\n[Set Token](command:valtown.setToken)\n[API Tokens](https://www.val.town/settings/api)",
 				"when": "!valtown.loggedIn"
+			},
+			{
+				"view": "valtown.references",
+				"contents": "Open a val to see its references.",
+				"when": "resourceScheme != 'vt+val'"
+			},
+			{
+				"view": "valtown.dependencies",
+				"contents": "Open a val to see its dependencies.",
+				"when": "resourceScheme != 'vt+val'"
 			},
 			{
 				"view": "valtown.blobs",
@@ -105,12 +123,6 @@
 				"icon": "$(refresh)"
 			},
 			{
-				"command": "valtown.open",
-				"title": "Open Val",
-				"category": "Val Town",
-				"icon": "$(file-code)"
-			},
-			{
 				"command": "valtown.rename",
 				"title": "Rename Val",
 				"category": "Val Town",
@@ -138,10 +150,9 @@
 				"category": "Val Town"
 			},
 			{
-				"command": "valtown.quickOpen",
-				"title": "Open Val...",
-				"category": "Val Town",
-				"icon": "$(file-code)"
+				"command": "valtown.open",
+				"title": "Open Val",
+				"category": "Val Town"
 			},
 			{
 				"command": "valtown.blob.quickOpen",
@@ -211,11 +222,6 @@
 				"title": "Val Logs"
 			},
 			{
-				"command": "valtown.togglePinned",
-				"category": "Val Town",
-				"title": "Toggle Pinned"
-			},
-			{
 				"command": "valtown.blob.refresh",
 				"category": "Val Town",
 				"title": "Refresh",
@@ -243,18 +249,6 @@
 				"category": "Val Town",
 				"title": "Open in New Window",
 				"icon": "$(empty-window)"
-			},
-			{
-				"command": "valtown.val.setFilters",
-				"category": "Val Town",
-				"title": "Set Filters",
-				"icon": "$(filter)"
-			},
-			{
-				"command": "valtown.val.setSort",
-				"category": "Val Town",
-				"title": "Set Sort",
-				"icon": "$(arrow-down)"
 			},
 			{
 				"command": "valtown.sqlite.refresh",
@@ -297,7 +291,46 @@
 				"properties": {
 					"valtown.endpoint": {
 						"type": "string",
+						"description": "The Val Town API endpoint to use.",
 						"default": "https://api.val.town"
+					},
+					"valtown.folders": {
+						"type": "array",
+						"description": "Val Tree.",
+						"items": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"title": {
+									"type": "string",
+									"description": "The title of the val."
+								},
+								"icon": {
+									"type": "string",
+									"description": "The icon of the folder."
+								},
+								"url": {
+									"type": "string",
+									"description": "The url to fetch the vals from."
+								},
+								"expanded": {
+									"type": "boolean",
+									"description": "Whether the folder is expanded by default."
+								}
+							}
+						},
+						"default": [
+							{
+								"title": "Liked Vals",
+								"icon": "heart",
+								"url": "https://api.val.town/v1/me/likes"
+							},
+							{
+								"title": "Home Vals",
+								"icon": "home",
+								"url": "https://api.val.town/v1/users/${uid}/vals"
+							}
+						]
 					}
 				}
 			}
@@ -313,7 +346,7 @@
 					"when": "valtown.loggedIn"
 				},
 				{
-					"command": "valtown.quickOpen",
+					"command": "valtown.open",
 					"when": "valtown.loggedIn"
 				},
 				{
@@ -338,10 +371,6 @@
 				},
 				{
 					"command": "valtown.refresh",
-					"when": "false"
-				},
-				{
-					"command": "valtown.open",
 					"when": "false"
 				},
 				{
@@ -401,10 +430,6 @@
 					"when": "false"
 				},
 				{
-					"command": "valtown.togglePinned",
-					"when": "false"
-				},
-				{
 					"command": "valtown.blob.refresh",
 					"when": "false"
 				},
@@ -418,14 +443,6 @@
 				},
 				{
 					"command": "valtown.blob.openInNewWindow",
-					"when": "false"
-				},
-				{
-					"command": "valtown.val.setFilters",
-					"when": "false"
-				},
-				{
-					"command": "valtown.val.setSort",
 					"when": "false"
 				},
 				{
@@ -472,16 +489,6 @@
 				{
 					"command": "valtown.createValFromTemplate",
 					"group": "navigation@2",
-					"when": "view == valtown.vals && valtown.loggedIn"
-				},
-				{
-					"command": "valtown.val.setFilters",
-					"group": "navigation@3",
-					"when": "view == valtown.vals && valtown.loggedIn"
-				},
-				{
-					"command": "valtown.val.setSort",
-					"group": "navigation@4",
 					"when": "view == valtown.vals && valtown.loggedIn"
 				},
 				{
@@ -534,11 +541,6 @@
 				{
 					"submenu": "valtown.submenus.privacy",
 					"group": "navigation@4",
-					"when": "viewItem == val"
-				},
-				{
-					"command": "valtown.togglePinned",
-					"group": "navigation@5",
 					"when": "viewItem == val"
 				},
 				{

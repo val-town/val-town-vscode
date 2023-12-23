@@ -14,6 +14,13 @@ export type BaseVal = {
   };
 };
 
+export type User = {
+  id: string;
+  bio: string;
+  username: string;
+  profileImageUrl: string;
+};
+
 // We patch these types to only support JSON values
 export type InValue = null | string | number | boolean;
 export type InArgs = Array<InValue> | Record<string, InValue>;
@@ -65,7 +72,7 @@ const templates = {
 export type ValTemplate = keyof typeof templates;
 
 export class ValtownClient {
-  private _uid: string | undefined;
+  private _user: User | undefined;
 
   constructor(public endpoint: string, private token?: string) {}
 
@@ -81,34 +88,62 @@ export class ValtownClient {
     return !!this.token;
   }
 
+  async paginate(url: string) {
+    let u = new URL(url);
+    u.searchParams.set("limit", "100");
+    url = u.toString();
+
+    const data = [];
+    while (true) {
+      const resp = await this.fetch(url);
+      if (!resp.ok) {
+        throw new Error("Failed to get my vals");
+      }
+      const body = (await resp.json()) as Paginated<BaseVal>;
+      data.push(...body.data);
+
+      if (!body.links?.next) {
+        break;
+      }
+
+      url = body.links?.next;
+    }
+
+    return data;
+  }
+
   async fetch(url: string, init?: RequestInit) {
     if (!this.token) {
       throw new Error("No token");
     }
 
-    const headers = {
-      ...init?.headers,
-      Authorization: `Bearer ${this.token}`,
-    };
+    const { hostname } = new URL(url);
+    if (hostname !== "api.val.town") {
+      return fetch(url, init);
+    }
+
     return fetch(url, {
       ...init,
-      headers,
+      headers: {
+        ...init?.headers,
+        Authorization: `Bearer ${this.token}`,
+      },
     });
   }
 
-  async uid() {
-    if (!this._uid) {
+  async user(): Promise<User> {
+    if (!this._user) {
       const resp = await this.fetch(`${this.endpoint}/v1/me`);
       if (resp.status !== 200) {
         throw new Error("Failed to get user ID");
       }
 
-      const body = (await resp.json()) as { id: string };
-
-      this._uid = body.id;
+      const user = await resp.json();
+      this._user = user;
+      return user;
     }
 
-    return this._uid;
+    return this._user;
   }
 
   async createVal(template?: ValTemplate) {
@@ -157,8 +192,8 @@ export class ValtownClient {
   }
 
   async listMyVals() {
-    const uid = await this.uid();
-    let endpoint = `${this.endpoint}/v1/users/${uid}/vals?limit=100`;
+    const user = await this.user();
+    let endpoint = `${this.endpoint}/v1/users/${user.id}/vals?limit=100`;
     const vals = [] as BaseVal[];
 
     while (true) {
@@ -340,7 +375,22 @@ export class ValtownClient {
     }
   }
 
-  async resolveVal(username: string, valname: string) {
+  async searchVals(query: string) {
+    return this.paginate(
+      `${this.endpoint}/v1/search/vals?query=${encodeURIComponent(query)}`
+    );
+  }
+
+  async resolveAlias(username: string, valname?: string) {
+    if (!valname) {
+      const resp = await this.fetch(`${this.endpoint}/v1/alias/${username}`);
+      if (!resp.ok) {
+        throw new Error("Failed to resolve val");
+      }
+
+      return resp.json();
+    }
+
     const resp = await this.fetch(
       `${this.endpoint}/v1/alias/${username}/${valname}`
     );

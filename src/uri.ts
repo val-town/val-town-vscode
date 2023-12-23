@@ -17,10 +17,10 @@ export function registerUriHandler(
         }
 
         const [_, author, name] = parts;
-        const val = await client.resolveVal(author, name);
+        const val = await client.resolveAlias(author, name);
         vscode.commands.executeCommand(
           "vscode.open",
-          vscode.Uri.parse(`vt+val://${val.id}/${val.name}.tsx`)
+          vscode.Uri.parse(`vt+val:/${author}/${name}.tsx`)
         );
       },
     })

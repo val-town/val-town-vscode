@@ -1,12 +1,14 @@
 import * as vscode from "vscode";
-import { BaseVal, FullVal, ValPrivacy, ValtownClient } from "../client";
+import { BaseVal, ValtownClient } from "../client";
 
-type ValSortField = "name" | "createdAt" | "runStartAt";
+type ValTreeItem = vscode.TreeItem & { val?: BaseVal };
 
-type ValSort = {
-  field: ValSortField;
-  order: "asc" | "desc";
-} | null;
+type ValFolder = {
+  title: string;
+  icon?: string;
+  expanded?: boolean;
+  url: string;
+};
 
 export function valIcon(privacy: "public" | "private" | "unlisted") {
   switch (privacy) {
@@ -19,6 +21,26 @@ export function valIcon(privacy: "public" | "private" | "unlisted") {
   }
 }
 
+function valToTreeItem(val: BaseVal): ValTreeItem {
+  const resourceUri = `vt+val:/${val.author.username.slice(1)}/${val.name}.tsx`;
+
+  return {
+    contextValue: "val",
+    resourceUri: vscode.Uri.parse(resourceUri),
+    label: val.name,
+    tooltip: `v${val.version}`,
+    description: val.author.username,
+    iconPath: valIcon(val.privacy),
+    collapsibleState: vscode.TreeItemCollapsibleState.None,
+    val,
+    command: {
+      command: "vscode.open",
+      title: "Open Val",
+      arguments: [resourceUri],
+    },
+  } as vscode.TreeItem & { val: BaseVal };
+}
+
 export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
   constructor(private client: ValtownClient) {}
 
@@ -28,130 +50,160 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
   readonly onDidChangeTreeData: vscode.Event<
     vscode.TreeItem | undefined | null | void
   > = this._onDidChangeTreeData.event;
-  public pins: FullVal[] = [];
-  public filters: Record<ValPrivacy, boolean> = {
-    public: true,
-    private: true,
-    unlisted: true,
-  };
-  public sort: ValSort = {
-    field: "createdAt",
-    order: "desc",
-  };
 
   refresh() {
     this._onDidChangeTreeData.fire();
   }
 
-  static valToTreeItem(val: BaseVal, prefix: string): vscode.TreeItem {
-    const treeItem = new vscode.TreeItem(
-      val.name,
-      vscode.TreeItemCollapsibleState.None
-    );
-    treeItem.id = `/${prefix}/${val.id}`;
-    treeItem.tooltip = `${val.author?.username}/${val.name}`;
-    treeItem.description = `v${val.version}`;
-    treeItem.iconPath = valIcon(val.privacy);
-    treeItem.contextValue = "val";
-    treeItem.command = {
-      command: "vscode.open",
-      title: "Open Val",
-      arguments: [`vt+val://${val.id}/${val.name}.tsx`],
-    };
-
-    return treeItem;
-  }
-
-  sortFunc(a: BaseVal, b: BaseVal) {
-    if (!this.sort) {
-      return 0;
-    }
-    switch (this.sort.field) {
-      case "name":
-        return this.sort.order === "asc"
-          ? a.name.localeCompare(b.name)
-          : b.name.localeCompare(a.name);
-      case "createdAt":
-        return this.sort.order === "asc"
-          ? a.createdAt.localeCompare(b.createdAt)
-          : b.createdAt.localeCompare(a.createdAt);
-      case "runStartAt":
-        return this.sort.order === "asc"
-          ? a.runStartAt.localeCompare(b.runStartAt)
-          : b.runStartAt.localeCompare(a.runStartAt);
-    }
-  }
-
-  async getChildren(element?: vscode.TreeItem | undefined) {
+  async getChildren(element?: (vscode.TreeItem & ValFolder) | undefined) {
     if (!this.client.authenticated) {
       return [];
     }
 
     if (!element) {
-      const sections = [];
-      if (this.pins.length > 0) {
-        const pinned = new vscode.TreeItem(
-          "Pinned Vals",
-          this.pins.length > 0
-            ? vscode.TreeItemCollapsibleState.Expanded
-            : vscode.TreeItemCollapsibleState.None
-        );
-        pinned.iconPath = new vscode.ThemeIcon("pinned");
-        sections.push(pinned);
-      }
-      const home = new vscode.TreeItem(
-        "Home Vals",
-        vscode.TreeItemCollapsibleState.Expanded
-      );
-      home.iconPath = new vscode.ThemeIcon("home");
-      sections.push(home);
-      const likes = new vscode.TreeItem(
-        "Liked Vals",
-        vscode.TreeItemCollapsibleState.Collapsed
-      );
-      likes.iconPath = new vscode.ThemeIcon("heart");
-      sections.push(likes);
-      return sections;
+      const config = vscode.workspace.getConfiguration("valtown");
+      const folders = config.get<ValFolder[]>("folders", []);
+
+      return folders.map((section, idx) => ({
+        idx,
+        label: section.title,
+        iconPath: section.icon
+          ? new vscode.ThemeIcon(section.icon)
+          : new vscode.ThemeIcon("folder"),
+        collapsibleState: section.expanded
+          ? vscode.TreeItemCollapsibleState.Expanded
+          : vscode.TreeItemCollapsibleState.Collapsed,
+        ...section,
+      }));
     }
 
-    switch (element.label) {
-      case "Pinned Vals":
-        return this.pins
-          .filter((val) => this.filters[val.privacy])
-          .sort((a, b) => this.sortFunc(a, b))
-          .map((val) => {
-            return ValTreeView.valToTreeItem(val, "pins");
-          });
-      case "Home Vals": {
-        const vals = await this.client.listMyVals();
-        if (!vals) {
-          return [];
-        }
+    const user = await this.client.user();
+    element.url = element.url.replace("${uid}", user.id);
+    const vals = await this.client.paginate(element.url);
+    return vals.map((val) => valToTreeItem(val));
+  }
 
-        return vals
-          .filter((val) => this.filters[val.privacy])
-          .sort((a, b) => this.sortFunc(a, b))
-          .map((val) => {
-            return ValTreeView.valToTreeItem(val, "home");
-          });
-      }
-      case "Liked Vals": {
-        const vals = await this.client.listLikedVals();
+  getTreeItem(
+    element: vscode.TreeItem
+  ): vscode.TreeItem | Thenable<vscode.TreeItem> {
+    return element;
+  }
+}
 
-        if (!vals) {
-          return [];
-        }
+class DependencyTreeViewProvider
+  implements vscode.TreeDataProvider<ValTreeItem>
+{
+  constructor(private client: ValtownClient) {}
 
-        return vals
-          .filter((val) => this.filters[val.privacy])
-          .sort((a, b) => this.sortFunc(a, b))
-          .map((val) => {
-            return ValTreeView.valToTreeItem(val, "likes");
-          });
-      }
-      default:
+  private _onDidChangeTreeData: vscode.EventEmitter<
+    ValTreeItem | undefined | null | void
+  > = new vscode.EventEmitter<ValTreeItem | undefined | null | void>();
+  readonly onDidChangeTreeData: vscode.Event<
+    ValTreeItem | undefined | null | void
+  > = this._onDidChangeTreeData.event;
+
+  refresh() {
+    this._onDidChangeTreeData.fire();
+  }
+
+  async getChildren(element?: ValTreeItem) {
+    let code: string | undefined;
+    if (element) {
+      code = element.val!.code;
+    } else {
+      code = vscode.window.activeTextEditor?.document.getText();
+    }
+
+    if (!code) {
+      return [
+        {
+          label: "No dependencies found",
+        },
+      ];
+    }
+    const urlPattern =
+      /https:\/\/esm\.town\/v\/([a-zA-Z_$][0-9a-zA-Z_$]*)\/([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
+
+    const matches = [...code.matchAll(urlPattern)];
+    if (matches.length === 0) {
+      return [
+        {
+          label: "No dependencies found",
+        },
+      ];
+    }
+
+    const vals = await Promise.all(
+      matches.map(async (match) => {
+        const [, author, name] = match;
+        return await this.client.resolveAlias(author, name);
+      })
+    );
+
+    return vals.map((val) => {
+      const item = valToTreeItem(val);
+      item.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+      return item;
+    });
+  }
+
+  getTreeItem(
+    element: vscode.TreeItem
+  ): vscode.TreeItem | Thenable<vscode.TreeItem> {
+    return element;
+  }
+}
+
+class ReferenceTreeViewProvider
+  implements vscode.TreeDataProvider<ValTreeItem>
+{
+  constructor(private client: ValtownClient) {}
+
+  private _onDidChangeTreeData: vscode.EventEmitter<
+    ValTreeItem | undefined | null | void
+  > = new vscode.EventEmitter<ValTreeItem | undefined | null | void>();
+  readonly onDidChangeTreeData: vscode.Event<
+    ValTreeItem | undefined | null | void
+  > = this._onDidChangeTreeData.event;
+
+  refresh() {
+    this._onDidChangeTreeData.fire();
+  }
+
+  async getChildren(
+    element: ValTreeItem | undefined
+  ): Promise<vscode.TreeItem[]> {
+    let esmUrl: string;
+    if (element) {
+      // prettier-ignore
+      esmUrl = `"https://esm.town/v/${element.val!.author.username.slice(1)}/${element.val!.name}"`;
+    } else {
+      const resourceUri = vscode.window.activeTextEditor?.document.uri;
+      const [author, filename] = resourceUri?.path.slice(1).split("/") || [];
+      if (!author || !filename) {
         return [];
+      }
+      esmUrl = `"https://esm.town/v/${author}/${filename.split(".")[0]}"`;
     }
+    const vals = await (
+      await this.client.searchVals(esmUrl)
+    ).filter((val) => {
+      return val.code.includes(esmUrl);
+    });
+
+    if (vals.length === 0) {
+      return [
+        {
+          label: "No references found",
+          collapsibleState: vscode.TreeItemCollapsibleState.None,
+        },
+      ];
+    }
+    return vals.map((val) => {
+      const item = valToTreeItem(val);
+      item.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+      return item;
+    });
   }
 
   getTreeItem(
@@ -165,174 +217,34 @@ export async function registerValTreeView(
   context: vscode.ExtensionContext,
   client: ValtownClient
 ) {
-  const tree = new ValTreeView(client);
-  const pins = await context.globalState.get<Record<string, FullVal>>(
-    "valtown.pins",
-    {}
-  );
-  tree.pins = Object.values(pins);
-  const filters = context.globalState.get<Record<ValPrivacy, boolean>>(
-    "valtown.filters",
-    {
-      public: true,
-      private: true,
-      unlisted: true,
-    }
-  );
-  tree.filters = filters;
-  const sort = context.globalState.get<ValSort>("valtown.sort", null);
-  tree.sort = sort;
+  const valTree = new ValTreeView(client);
   context.subscriptions.push(
     vscode.window.createTreeView("valtown.vals", {
-      treeDataProvider: tree,
+      treeDataProvider: valTree,
       showCollapseAll: true,
     })
   );
 
   context.subscriptions.push(
     vscode.commands.registerCommand("valtown.refresh", async () => {
-      tree.refresh();
-    }),
-    vscode.commands.registerCommand("valtown.togglePinned", async (arg) => {
-      if (!arg.id) {
-        vscode.window.showErrorMessage("No val selected");
-        return;
-      }
-      const valID = arg.id.split("/").pop() as string;
-      const val = await client.getVal(valID);
-      const pinnedVals = context.globalState.get<Record<string, FullVal>>(
-        "valtown.pins",
-        {}
-      );
-      if (pinnedVals[valID]) {
-        delete pinnedVals[valID];
-      } else {
-        pinnedVals[valID] = val;
-      }
-      await context.globalState.update("valtown.pins", pinnedVals);
-      tree.pins = Object.values(pinnedVals);
-      await tree.refresh();
-    }),
-    vscode.commands.registerCommand("valtown.val.setSort", async () => {
-      const field = await vscode.window.showQuickPick<
-        vscode.QuickPickItem & { value: ValSortField | null }
-      >(
-        [
-          {
-            label: "Sort by Name",
-            value: "name",
-          },
-          {
-            label: "Sort by Created At",
-            value: "createdAt",
-          },
-          {
-            label: "Sort by Last Run At",
-            value: "runStartAt",
-          },
-          {
-            label: "Clear Sort",
-            value: null,
-          },
-        ],
-        {
-          canPickMany: false,
-        }
-      );
-
-      if (!field) {
-        return;
-      }
-
-      if (field.value === null) {
-        await context.globalState.update("valtown.sort", null);
-        tree.sort = null;
-        tree.refresh();
-        return;
-      }
-
-      const order = await vscode.window.showQuickPick<
-        vscode.QuickPickItem & { value: "asc" | "desc" }
-      >([
-        {
-          label: "Ascending",
-          description: "Sort ascending",
-          value: "asc",
-        },
-        {
-          label: "Descending",
-          description: "Sort descending",
-          value: "desc",
-        },
-      ]);
-
-      if (!order) {
-        return;
-      }
-
-      const sort = {
-        field: field.value,
-        order: order.value,
-      };
-      await context.globalState.update("valtown.sort", sort);
-      tree.sort = sort;
-      tree.refresh();
-    }),
-    vscode.commands.registerCommand("valtown.val.setFilters", async () => {
-      const filters = context.globalState.get<Record<ValPrivacy, boolean>>(
-        "valtown.filters",
-        {
-          public: true,
-          private: true,
-          unlisted: true,
-        }
-      );
-      const picks = await vscode.window.showQuickPick<
-        vscode.QuickPickItem & { privacy: ValPrivacy }
-      >(
-        [
-          {
-            label: "Private",
-            description: "Show private vals",
-            picked: filters.private,
-            privacy: "private",
-          },
-          {
-            label: "Unlisted",
-            description: "Show unlisted vals",
-            picked: filters.unlisted,
-            privacy: "unlisted",
-          },
-          {
-            label: "Public",
-            description: "Show public vals",
-            picked: filters.public,
-            privacy: "public",
-          },
-        ],
-        {
-          title: "Filter Vals",
-          canPickMany: true,
-        }
-      );
-
-      if (!picks) {
-        return;
-      }
-
-      const newFilters = {
-        public: false,
-        private: false,
-        unlisted: false,
-      };
-
-      for (const pick of picks) {
-        newFilters[pick.privacy] = true;
-      }
-
-      await context.globalState.update("valtown.filters", newFilters);
-      tree.filters = newFilters;
-      await tree.refresh();
+      valTree.refresh();
     })
   );
+
+  const references = new ReferenceTreeViewProvider(client);
+  context.subscriptions.push(
+    vscode.window.registerTreeDataProvider("valtown.references", references)
+  );
+
+  const dependencies = new DependencyTreeViewProvider(client);
+  context.subscriptions.push(
+    vscode.window.registerTreeDataProvider("valtown.dependencies", dependencies)
+  );
+
+  vscode.window.onDidChangeActiveTextEditor((editor) => {
+    if (editor?.document.uri.scheme === "vt+val") {
+      references.refresh();
+      dependencies.refresh();
+    }
+  });
 }

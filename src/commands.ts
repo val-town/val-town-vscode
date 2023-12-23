@@ -1,40 +1,12 @@
 import * as vscode from "vscode";
 import { clearToken, saveToken } from "./secrets";
-import { ValTemplate, ValtownClient } from "./client";
+import { BaseVal, ValTemplate, ValtownClient } from "./client";
 import { valIcon } from "./val/tree";
 
 export function registerCommands(
   context: vscode.ExtensionContext,
   client: ValtownClient
 ) {
-  function extractValID(arg: unknown) {
-    if (!arg) {
-      if (!(vscode.window.activeTextEditor?.document.uri.scheme === "val")) {
-        throw new Error("No val selected");
-      }
-
-      return vscode.window.activeTextEditor?.document.uri.authority as string;
-    }
-
-    if (typeof arg === "string") {
-      return arg;
-    }
-
-    if (typeof arg !== "object") {
-      throw new Error("Could not extract val ID");
-    }
-
-    if ("id" in arg && typeof arg.id === "string") {
-      return arg.id.split("/").pop() as string;
-    }
-
-    if ("authority" in arg && typeof arg.authority === "string") {
-      return arg.authority as string;
-    }
-
-    throw new Error("Could not extract val ID");
-  }
-
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "valtown.setToken",
@@ -66,7 +38,9 @@ export function registerCommands(
       const val = await client.createVal();
       vscode.commands.executeCommand(
         "vscode.open",
-        vscode.Uri.parse(`vt+val://${val.id}/${val.name}.tsx`)
+        vscode.Uri.parse(
+          `vt+val:/${val.author.username.slice(1)}/${val.name}.tsx`
+        )
       );
 
       vscode.commands.executeCommand("valtown.refresh");
@@ -102,19 +76,18 @@ export function registerCommands(
         const val = await client.createVal(template.value);
         vscode.commands.executeCommand(
           "vscode.open",
-          vscode.Uri.parse(`vt+val://${val.id}/${val.name}.tsx`)
+          vscode.Uri.parse(
+            `vt+val:/${val.author.username.slice(1)}/${val.name}.tsx`
+          )
         );
         vscode.commands.executeCommand("valtown.refresh");
       }
     ),
 
     vscode.commands.registerCommand("valtown.rename", async (arg) => {
-      const valID = extractValID(arg);
-
-      const val = await client.getVal(valID);
       const name = await vscode.window.showInputBox({
         prompt: "Val name",
-        value: val.name,
+        value: arg.val.name,
         validateInput: async (value) => {
           if (!value) {
             return "Val name cannot be empty";
@@ -126,12 +99,10 @@ export function registerCommands(
         return;
       }
 
-      await client.renameVal(valID, name);
+      await client.renameVal(arg.val.id, name);
       await vscode.commands.executeCommand("valtown.refresh");
     }),
     vscode.commands.registerCommand("valtown.setPrivacy", async (arg) => {
-      const valID = extractValID(arg);
-      const val = await client.getVal(valID);
       const privacy = await vscode.window.showQuickPick<
         vscode.QuickPickItem & {
           value: "public" | "unlisted" | "private";
@@ -157,170 +128,166 @@ export function registerCommands(
         { title: "Select val privacy" }
       );
 
-      if (!privacy || privacy.value == val.privacy) {
+      if (!privacy || privacy.value == arg.val.privacy) {
         return;
       }
 
-      await client.setPrivacy(valID, privacy.value);
+      await client.setPrivacy(arg.val.id, privacy.value);
       await vscode.commands.executeCommand("valtown.refresh");
     }),
     vscode.commands.registerCommand("valtown.setPublic", async (arg) => {
-      const valID = extractValID(arg);
-      await client.setPrivacy(valID, "public");
+      await client.setPrivacy(arg.val.id, "public");
       await vscode.commands.executeCommand("valtown.refresh");
     }),
     vscode.commands.registerCommand("valtown.setUnlisted", async (arg) => {
-      const valID = extractValID(arg);
-      await client.setPrivacy(valID, "unlisted");
+      await client.setPrivacy(arg.val.id, "unlisted");
       await vscode.commands.executeCommand("valtown.refresh");
     }),
     vscode.commands.registerCommand("valtown.setPrivate", async (arg) => {
-      const valID = extractValID(arg);
-      await client.setPrivacy(valID, "private");
+      await client.setPrivacy(arg.val.id, "private");
       await vscode.commands.executeCommand("valtown.refresh");
     }),
     vscode.commands.registerCommand("valtown.openReadme", async (arg) => {
-      const valID = extractValID(arg);
+      let readmeUri: vscode.Uri;
+      if ("val" in arg) {
+        const { author, name } = arg.val;
+        readmeUri = vscode.Uri.parse(
+          `vt+val:/${author.username.slice(1)}/${name}.md`
+        );
+      } else {
+        const [author, filename] = arg.path.slice(1).split("/");
+        readmeUri = vscode.Uri.parse(
+          `vt+val:/${author}/${filename.split(".")[0]}.md`
+        );
+      }
       vscode.commands.executeCommand(
         "vscode.openWith",
-        vscode.Uri.parse(`vt+val://${valID}/README.md`),
+        readmeUri,
         "vscode.markdown.preview.editor"
       );
     }),
     vscode.commands.registerCommand("valtown.openReadmeToSide", async (arg) => {
-      const valID = extractValID(arg);
+      let readmeUri: vscode.Uri;
+      if ("val" in arg) {
+        const { author, name } = arg.val;
+        readmeUri = vscode.Uri.parse(
+          `vt+val:/${author.username.slice(1)}/${name}.md`
+        );
+      } else {
+        const [author, filename] = arg.path.slice(1).split("/");
+        readmeUri = vscode.Uri.parse(
+          `vt+val:/${author}/${filename.split(".")[0]}.md`
+        );
+      }
       vscode.commands.executeCommand(
         "vscode.openWith",
-        vscode.Uri.parse(`vt+val://${valID}/README.md`),
+        readmeUri,
         "vscode.markdown.preview.editor",
         vscode.ViewColumn.Beside
       );
     }),
     vscode.commands.registerCommand("valtown.copyModuleURL", async (arg) => {
-      const valID = extractValID(arg);
-
-      const val = await client.getVal(valID);
+      const { name, author } = arg.val;
       vscode.env.clipboard.writeText(
-        `https://esm.town/v/${val.author.username.slice(1)}/${val.name}`
+        `https://esm.town/v/${author.username.slice(1)}/${name}`
       );
       vscode.window.showInformationMessage(`Module URL copied to clipboard`);
     }),
     vscode.commands.registerCommand("copyValID", async (arg) => {
-      const valID = extractValID(arg);
-
-      vscode.env.clipboard.writeText(valID);
+      vscode.env.clipboard.writeText(arg.val.id);
       vscode.window.showInformationMessage(`Val ID copied to clipboard`);
     }),
     vscode.commands.registerCommand("valtown.deleteVal", async (arg) => {
-      const valID = extractValID(arg);
-
-      await client.deleteVal(valID);
+      await client.deleteVal(arg.val.id);
       await vscode.commands.executeCommand("valtown.refresh");
     }),
     vscode.commands.registerCommand("valtown.copyValUrl", async (arg) => {
-      const valID = extractValID(arg);
-      const val = await client.getVal(valID);
+      const { author, name } = arg.val;
       vscode.env.clipboard.writeText(
-        `https://val.town/v/${val.author?.username?.slice(1)}/${val.name}`
+        `https://val.town/v/${author.username.slice(1)}/${name}`
       );
       vscode.window.showInformationMessage(`Val link copied to clipboard`);
     }),
     vscode.commands.registerCommand("valtown.openValUrl", async (arg) => {
-      const valID = extractValID(arg);
-      const val = await client.getVal(valID);
-      await vscode.env.openExternal(
-        vscode.Uri.parse(
-          `https://val.town/v/${val.author?.username?.slice(1)}/${val.name}`
-        )
-      );
+      let valUrl: string;
+      if ("val" in arg) {
+        const { author, name } = arg.val;
+        valUrl = `https://val.town/v/${author.username.slice(1)}/${name}`;
+      } else {
+        const [author, filename] = arg.path.slice(1).split("/");
+        valUrl = `https://val.town/v/${author}/${filename.split(".")[0]}`;
+      }
+
+      await vscode.env.openExternal(vscode.Uri.parse(valUrl));
     }),
     vscode.commands.registerCommand("valtown.copyScriptTag", async (arg) => {
-      const valID = extractValID(arg);
-      const val = await client.getVal(valID);
+      const { author, name } = arg.val;
+      // prettier-ignore
       vscode.env.clipboard.writeText(
-        `<script type="module" src="https://esm.town/v/${val.author?.username?.slice(
-          1
-        )}/${val.name}"></script>`
+        `<script type="module" src="https://val.town/v/${author.username.slice(1)}/${name}"></script>`
       );
       vscode.window.showInformationMessage(`Script tag copied to clipboard`);
     }),
     vscode.commands.registerCommand("valtown.copyEmailAddress", async (arg) => {
-      const valID = extractValID(arg);
-      const val = await client.getVal(valID);
+      const { author, name } = arg.val;
       vscode.env.clipboard.writeText(
-        `${val.author?.username?.slice(1)}.${val.name}@valtown.email`
+        `${author.username.slice(1)}.${name}@valtown.email`
       );
       vscode.window.showInformationMessage(`Email Address copied to clipboard`);
     }),
     vscode.commands.registerCommand("valtown.openValLogs", async (arg) => {
-      const valID = extractValID(arg);
-      const val = await client.getVal(valID);
+      const { author, name } = arg.val;
       await vscode.env.openExternal(
         vscode.Uri.parse(
-          `https://val.town/v/${val.author?.username?.slice(1)}/${
-            val.name
-          }/evaluations`
+          `https://val.town/v/${author?.username?.slice(1)}/${name}/evaluations`
         )
       );
     }),
     vscode.commands.registerCommand("valtown.copyEmbedUrl", async (arg) => {
-      const valID = extractValID(arg);
-      const val = await client.getVal(valID);
+      const { author, name } = arg.val;
       vscode.env.clipboard.writeText(
-        `https://val.town/embed/${val.author?.username?.slice(1)}.${val.name}`
+        `https://val.town/embed/${author.username.slice(1)}.${name}`
       );
       vscode.window.showInformationMessage(`Embed URL to clipboard`);
     }),
     vscode.commands.registerCommand("valtown.copyHttpEndpoint", async (arg) => {
-      const valID = extractValID(arg);
-      const val = await client.getVal(valID);
+      const { author, name } = arg.val;
       vscode.env.clipboard.writeText(
-        `https://${val.author.username.slice(1)}-${val.name}.web.val.run`
+        `https://${author.username.slice(1)}-${name}.web.val.run`
       );
       vscode.window.showInformationMessage(
         `Val HTTP endpoint copied to clipboard`
       );
     }),
     vscode.commands.registerCommand("valtown.openHttpEndpoint", async (arg) => {
-      const valID = extractValID(arg);
-      const val = await client.getVal(valID);
+      const { author, name } = arg.val;
       vscode.env.openExternal(
         vscode.Uri.parse(
-          `https://${val.author.username.slice(1)}-${val.name}.web.val.run`
+          `https://${author.username.slice(1)}-${name}.web.val.run`
         )
       );
     }),
-    vscode.commands.registerCommand("valtown.open", async (arg) => {
-      const valID = extractValID(arg);
 
-      const val = await client.getVal(valID);
-      return vscode.commands.executeCommand(
-        "vscode.open",
-        vscode.Uri.parse(`vt+val://${val.id}/${val.name}.tsx`)
-      );
-    }),
-    vscode.commands.registerCommand("valtown.quickOpen", async () => {
-      const vals = await client.listMyVals();
-      const pick = await vscode.window.showQuickPick<
-        { id: string } & vscode.QuickPickItem
-      >(
-        vals.map((val) => ({
-          id: val.id,
-          label: `\$(${valIcon(val.privacy).id}) ${val.name}`,
-          description: `v${val.version}`,
-        })),
-        { title: "Select a val to open" }
-      );
-      if (!pick) {
+    vscode.commands.registerCommand("valtown.open", async () => {
+      const slugRegex = /^@[a-zA-Z0-9-_]+\/[a-zA-Z0-9-_]+$/;
+      const valSlug = await vscode.window.showInputBox({
+        prompt: "Val slug",
+        placeHolder: "@stevekouse/fetchJSON",
+        validateInput: async (value) => {
+          if (!slugRegex.test(value || "")) {
+            return "Invalid val name";
+          }
+        },
+      });
+
+      if (!valSlug) {
         return;
       }
 
-      const val = await client.getVal(pick.id);
-      return vscode.commands.executeCommand(
+      const [author, name] = valSlug.slice(1).split("/") || [];
+      vscode.commands.executeCommand(
         "vscode.open",
-        vscode.Uri.parse(
-          `vt+val://${val.id}/${val.author?.username?.slice(1)}/${val.name}.tsx`
-        )
+        vscode.Uri.parse(`vt+val:/${author}/${name}.tsx`)
       );
     })
   );

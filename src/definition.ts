@@ -23,10 +23,9 @@ export function register(
           const text = document.getText(range);
           const uri = vscode.Uri.parse(text);
           const [, author, name] = uri.path.slice(1).split("/");
-          const val = await client.resolveVal(author, name);
 
           return new vscode.Location(
-            vscode.Uri.parse(`vt+val://${val.id}/${val.name}.tsx`),
+            vscode.Uri.parse(`vt+val:/${author}/${name}.tsx`),
             new vscode.Position(0, 0)
           );
         },

@@ -20,7 +20,7 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
     }
 
     let prefix = element ? element.resourceUri?.path.slice(1) : undefined;
-    const uid = await this.client.uid();
+    const user = await this.client.user();
     const blobs = await this.client.listBlobs(prefix);
     const treeItems: Record<string, vscode.TreeItem> = {};
     for (const blob of blobs) {
@@ -31,19 +31,19 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
           contextValue: "folder",
           collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
           iconPath: vscode.ThemeIcon.Folder,
-          resourceUri: vscode.Uri.parse(`vt+blob://${uid}/${folder}/`),
+          resourceUri: vscode.Uri.parse(`vt+blob:/${folder}/`),
         };
       } else {
         treeItems[filepath] = {
           id: blob.key,
           contextValue: "blob",
           description: `${blob.size / 1000} kb`,
-          resourceUri: vscode.Uri.parse(`vt+blob://${uid}/${blob.key}`),
+          resourceUri: vscode.Uri.parse(`vt+blob:/${blob.key}`),
           iconPath: vscode.ThemeIcon.File,
           command: {
             command: "vscode.open",
             title: "Open Blob",
-            arguments: [`vt+blob://${uid}/${blob.key}`],
+            arguments: [`vt+blob:/${blob.key}`],
           },
         };
       }
