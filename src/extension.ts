@@ -3,11 +3,11 @@
 import * as vscode from "vscode";
 
 import { registerValTreeView } from "./val/tree";
-import { registerBlobTreeView } from "./blob/fs";
+import { registerBlobTreeView } from "./blob/tree";
 import { ValtownClient } from "./client";
 import { registerValFileSystemProvider } from "./val/fs";
 import { registerSqliteTreeView } from "./sqlite/tree";
-import { registerBlobFileSystemProvider } from "./blob/tree";
+import { registerBlobFileSystemProvider } from "./blob/fs";
 import { loadToken } from "./secrets";
 import { registerCommands } from "./commands";
 import { registerUriHandler } from "./uri";

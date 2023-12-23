@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import { clearToken, saveToken } from "./secrets";
 import { BaseVal, ValTemplate, ValtownClient } from "./client";
-import { valIcon } from "./val/tree";
 
 export function registerCommands(
   context: vscode.ExtensionContext,
@@ -85,22 +84,28 @@ export function registerCommands(
     ),
 
     vscode.commands.registerCommand("valtown.rename", async (arg) => {
+      const { val } = arg;
       const name = await vscode.window.showInputBox({
         prompt: "Val name",
-        value: arg.val.name,
+        value: val.name,
         validateInput: async (value) => {
           if (!value) {
             return "Val name cannot be empty";
           }
         },
       });
-
       if (!name) {
         return;
       }
 
-      await client.renameVal(arg.val.id, name);
-      await vscode.commands.executeCommand("valtown.refresh");
+      const oldURI = vscode.Uri.parse(
+        `vt+val:/${val.author.username.slice(1)}/${val.name}.tsx`
+      );
+      const newURI = vscode.Uri.parse(
+        `vt+val:/${val.author.username.slice(1)}/${name}.tsx`
+      );
+
+      vscode.workspace.fs.rename(oldURI, newURI, { overwrite: false });
     }),
     vscode.commands.registerCommand("valtown.setPrivacy", async (arg) => {
       const privacy = await vscode.window.showQuickPick<
@@ -198,7 +203,12 @@ export function registerCommands(
       vscode.window.showInformationMessage(`Val ID copied to clipboard`);
     }),
     vscode.commands.registerCommand("valtown.deleteVal", async (arg) => {
-      await client.deleteVal(arg.val.id);
+      const { author, name } = arg.val as BaseVal;
+
+      vscode.workspace.fs.delete(
+        vscode.Uri.parse(`vt+val:/${author.username.slice(1)}/${name}.tsx`)
+      );
+
       await vscode.commands.executeCommand("valtown.refresh");
     }),
     vscode.commands.registerCommand("valtown.copyValUrl", async (arg) => {
@@ -270,11 +280,13 @@ export function registerCommands(
 
     vscode.commands.registerCommand("valtown.open", async () => {
       const slugRegex = /^@[a-zA-Z0-9-_]+\/[a-zA-Z0-9-_]+$/;
+      const urlRegex =
+        /^https:\/\/val\.town\/v\/[a-zA-Z0-9-_]+\/[a-zA-Z0-9-_]+$/;
       const valSlug = await vscode.window.showInputBox({
         prompt: "Val slug",
         placeHolder: "@stevekouse/fetchJSON",
         validateInput: async (value) => {
-          if (!slugRegex.test(value || "")) {
+          if (!slugRegex.test(value || "") && !urlRegex.test(value || "")) {
             return "Invalid val name";
           }
         },
@@ -283,12 +295,14 @@ export function registerCommands(
       if (!valSlug) {
         return;
       }
-
-      const [author, name] = valSlug.slice(1).split("/") || [];
-      vscode.commands.executeCommand(
-        "vscode.open",
-        vscode.Uri.parse(`vt+val:/${author}/${name}.tsx`)
-      );
+      let valUri: vscode.Uri;
+      if (valSlug.startsWith("@")) {
+        valUri = vscode.Uri.parse(`vt+val:/${valSlug.slice(1)}.tsx`);
+      } else {
+        const [, author, name] = new URL(valSlug).pathname.split("/");
+        valUri = vscode.Uri.parse(`vt+val:/${author}/${name}.tsx`);
+      }
+      vscode.commands.executeCommand("vscode.open", valUri);
     })
   );
 }

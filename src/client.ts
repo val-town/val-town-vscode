@@ -149,7 +149,7 @@ export class ValtownClient {
 
   async createVal(template?: ValTemplate) {
     // empty vals are not allowed, so we add a space
-    let code = template ? templates[template] : " ";
+    let code = template ? templates[template] : "\n";
     if (template) {
       code = templates[template];
     }
@@ -383,6 +383,9 @@ export class ValtownClient {
   }
 
   async resolveAlias(username: string, valname?: string) {
+    if (username.startsWith("@")) {
+      username = username.slice(1);
+    }
     if (!valname) {
       const resp = await this.fetch(`${this.endpoint}/v1/alias/${username}`);
       if (!resp.ok) {

@@ -6,8 +6,9 @@ export const FS_SCHEME = "vt+val";
 class ValFileSystemProvider implements vscode.FileSystemProvider {
   constructor(private client: ValtownClient) {}
 
-  onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> =
-    new vscode.EventEmitter<vscode.FileChangeEvent[]>().event;
+  private _emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
+  readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> =
+    this._emitter.event;
 
   async extractVal(uri: vscode.Uri): Promise<FullVal> {
     const [author, filename] = uri.path.slice(1).split("/");
@@ -36,18 +37,40 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
   async delete(uri: vscode.Uri) {
     const val = await this.extractVal(uri);
     this.client.deleteVal(val.id);
+    this._emitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
     vscode.commands.executeCommand("valtown.refresh");
   }
 
-  rename(
+  async rename(
     oldUri: vscode.Uri,
     newUri: vscode.Uri,
     options: { readonly overwrite: boolean }
-  ): void | Thenable<void> {
-    vscode.window.showErrorMessage("Cannot rename files in ValTown");
+  ) {
+    const oldVal = await this.extractVal(oldUri);
+    const name = newUri.path.split("/").pop()?.replace(".tsx", "");
+    if (!name) {
+      vscode.window.showErrorMessage("Invalid name");
+      return;
+    }
+
+    await this.client.renameVal(oldVal.id, name);
+    this._emitter.fire([
+      { type: vscode.FileChangeType.Deleted, uri: oldUri },
+      { type: vscode.FileChangeType.Created, uri: newUri },
+    ]);
+    vscode.commands.executeCommand("valtown.refresh");
   }
 
   async stat(uri: vscode.Uri) {
+    if (uri.path.split("/").length < 3) {
+      return {
+        type: vscode.FileType.Directory,
+        ctime: 0,
+        mtime: 0,
+        size: 0,
+      };
+    }
+
     const val = await this.extractVal(uri);
     const user = await this.client.user();
 
