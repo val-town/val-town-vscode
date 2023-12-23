@@ -14,41 +14,21 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
     this._onDidChangeTreeData.fire();
   }
 
-  async getChildren(element?: vscode.TreeItem | undefined) {
-    if (!this.client.authenticated) {
-      return [];
-    }
-
-    let prefix = element ? element.resourceUri?.path.slice(1) : undefined;
-    const blobs = await this.client.listBlobs(prefix);
-    const treeItems: Record<string, vscode.TreeItem> = {};
-    for (const blob of blobs) {
-      const filepath = blob.key.slice(prefix?.length || 0);
-      if (filepath.split("/").length > 1) {
-        const folder = filepath.split("/")[0];
-        treeItems[folder] = {
-          contextValue: "folder",
-          collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
-          iconPath: vscode.ThemeIcon.Folder,
-          resourceUri: vscode.Uri.parse(`vt+blob:/${folder}/`),
-        };
-      } else {
-        treeItems[filepath] = {
-          id: blob.key,
-          contextValue: "blob",
-          description: `${blob.size / 1000} kb`,
-          resourceUri: vscode.Uri.parse(`vt+blob:/${blob.key}`),
-          iconPath: vscode.ThemeIcon.File,
-          command: {
-            command: "vscode.open",
-            title: "Open Blob",
-            arguments: [`vt+blob:/${blob.key}`],
-          },
-        };
-      }
-    }
-
-    return Object.values(treeItems);
+  async getChildren(_: vscode.TreeItem | undefined) {
+    const blobs = await this.client.listBlobs();
+    return blobs.map((blob) => ({
+      id: blob.key,
+      label: blob.key,
+      contextValue: "blob",
+      description: `${blob.size / 1000} kb`,
+      resourceUri: vscode.Uri.parse(`vt+blob:/${encodeURIComponent(blob.key)}`),
+      iconPath: vscode.ThemeIcon.File,
+      command: {
+        command: "vscode.open",
+        title: "Open Blob",
+        arguments: [`vt+blob:/${encodeURIComponent(blob.key)}`],
+      },
+    }));
   }
 
   getTreeItem(

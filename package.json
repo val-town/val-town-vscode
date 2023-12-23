@@ -242,6 +242,12 @@
 				"title": "Delete"
 			},
 			{
+				"command": "valtown.blob.create",
+				"category": "Val Town",
+				"title": "Create Blob",
+				"icon": "$(plus)"
+			},
+			{
 				"command": "valtown.blob.upload",
 				"category": "Val Town",
 				"title": "Upload Blob",
@@ -252,12 +258,6 @@
 				"category": "Val Town",
 				"title": "Download",
 				"icon": "$(cloud-download)"
-			},
-			{
-				"command": "valtown.blob.openInNewWindow",
-				"category": "Val Town",
-				"title": "Open in New Window",
-				"icon": "$(empty-window)"
 			},
 			{
 				"command": "valtown.sqlite.refresh",
@@ -458,10 +458,6 @@
 					"when": "false"
 				},
 				{
-					"command": "valtown.blob.openInNewWindow",
-					"when": "false"
-				},
-				{
 					"command": "valtown.sqlite.refresh",
 					"when": "false"
 				},
@@ -513,12 +509,12 @@
 					"when": "view == valtown.vals && valtown.loggedIn"
 				},
 				{
-					"command": "valtown.blob.upload",
+					"command": "valtown.blob.create",
 					"group": "navigation@1",
 					"when": "view == valtown.blobs && valtown.loggedIn"
 				},
 				{
-					"command": "valtown.blob.openInNewWindow",
+					"command": "valtown.blob.upload",
 					"group": "navigation@2",
 					"when": "view == valtown.blobs && valtown.loggedIn"
 				},

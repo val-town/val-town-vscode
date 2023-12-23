@@ -88,18 +88,10 @@ class BlobFileSystemProvider implements vscode.FileSystemProvider {
   createDirectory(uri: vscode.Uri) {}
 
   async readDirectory(uri: vscode.Uri) {
-    let prefix = uri.path.slice(1);
-    if (prefix && !prefix.endsWith("/")) {
-      prefix += "/";
-    }
-    const files: Record<string, vscode.FileType> = {};
-    for (const blob of await this.client.listBlobs(prefix)) {
-      const parts = blob.key.slice(prefix.length).split("/");
-      files[parts[0]] =
-        parts.length > 1 ? vscode.FileType.Directory : vscode.FileType.File;
-    }
-    const result = Object.entries(files);
-    return result;
+    const blobs = await this.client.listBlobs();
+    return blobs.map(
+      (blob) => [blob.key, vscode.FileType.File] as [string, vscode.FileType]
+    );
   }
 }
 
@@ -121,6 +113,19 @@ export function registerBlobFileSystemProvider(
       }
 
       await vscode.commands.executeCommand("vscode.open", uris[0]);
+    }),
+    vscode.commands.registerCommand("valtown.blob.create", async () => {
+      const input = await vscode.window.showInputBox({
+        prompt: "Enter a name for the new blob",
+      });
+      if (!input) {
+        return;
+      }
+
+      const uri = vscode.Uri.parse(`vt+blob:/${encodeURIComponent(input)}`);
+      await vscode.workspace.fs.writeFile(uri, new TextEncoder().encode("\n"));
+      await vscode.commands.executeCommand("vscode.open", uri);
+      await vscode.commands.executeCommand("valtown.blob.refresh");
     }),
     vscode.commands.registerCommand("valtown.blob.upload", async (arg) => {
       const fileUris = await vscode.window.showOpenDialog({
@@ -151,7 +156,7 @@ export function registerBlobFileSystemProvider(
     }),
     vscode.commands.registerCommand("valtown.blob.download", async (arg) => {
       const key = arg.id;
-      const blobUri = vscode.Uri.parse(`vt+blob:/${key}`);
+      const blobUri = vscode.Uri.parse(`vt+blob:/${encodeURIComponent(key)}`);
 
       const fileUri = await vscode.window.showSaveDialog({
         saveLabel: "Download",
@@ -167,11 +172,13 @@ export function registerBlobFileSystemProvider(
     }),
     vscode.commands.registerCommand("valtown.blob.delete", async (arg) => {
       const key = arg.id;
-      await vscode.workspace.fs.delete(vscode.Uri.parse(`vt+blob:/${key}`));
+      await vscode.workspace.fs.delete(
+        vscode.Uri.parse(`vt+blob:/${encodeURIComponent(key)}`)
+      );
     }),
     vscode.commands.registerCommand("valtown.blob.rename", async (arg) => {
       const key = arg.id;
-      const oldUri = vscode.Uri.parse(`vt+blob:/${key}`);
+      const oldUri = vscode.Uri.parse(`vt+blob:/${encodeURIComponent(key)}`);
       const newUri = await vscode.window.showSaveDialog({
         defaultUri: oldUri,
         saveLabel: "Rename",
@@ -183,16 +190,6 @@ export function registerBlobFileSystemProvider(
       }
 
       await vscode.workspace.fs.rename(oldUri, newUri, { overwrite: true });
-    }),
-    vscode.commands.registerCommand(
-      "valtown.blob.openInNewWindow",
-      async () => {
-        await vscode.commands.executeCommand(
-          "vscode.openFolder",
-          vscode.Uri.parse("vt+blob:/"),
-          { forceNewWindow: true }
-        );
-      }
-    )
+    })
   );
 }
