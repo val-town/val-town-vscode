@@ -37,6 +37,10 @@
 		"views": {
 			"valtown": [
 				{
+					"id": "valtown.pins",
+					"name": "Pins"
+				},
+				{
 					"id": "valtown.vals",
 					"name": "Vals"
 				},
@@ -59,6 +63,11 @@
 			]
 		},
 		"viewsWelcome": [
+			{
+				"view": "valtown.pins",
+				"contents": "Set your Val Town token to use this extension.\n[Set Token](command:valtown.setToken)\n[API Tokens](https://www.val.town/settings/api)",
+				"when": "!valtown.loggedIn"
+			},
 			{
 				"view": "valtown.vals",
 				"contents": "Set your Val Town token to use this extension.\n[Set Token](command:valtown.setToken)\n[API Tokens](https://www.val.town/settings/api)",
@@ -293,6 +302,13 @@
 						"type": "string",
 						"description": "The Val Town API endpoint to use.",
 						"default": "https://api.val.town"
+					},
+					"valtown.pins": {
+						"type": "array",
+						"description": "Pinned Vals.",
+						"items": {
+							"type": "string"
+						}
 					},
 					"valtown.folders": {
 						"type": "array",

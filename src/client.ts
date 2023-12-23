@@ -39,6 +39,7 @@ export type Blob = {
 
 export type FullVal = BaseVal & {
   readme: string;
+  referenceCount: number;
 };
 
 type Paginated<T> = {
@@ -400,6 +401,23 @@ export class ValtownClient {
     }
 
     return resp.json();
+  }
+
+  async extractDependencies(code: string) {
+    const esmUrlRegex =
+      /https:\/\/esm\.town\/v\/([a-zA-Z_$][0-9a-zA-Z_$]*)\/([a-zA-Z_$][0-9a-zA-Z_$]*)/g;
+
+    const matches = [...code.matchAll(esmUrlRegex)];
+    if (matches.length === 0) {
+      return [];
+    }
+
+    return await Promise.all(
+      matches.map(async (match) => {
+        const [, author, name] = match;
+        return this.resolveAlias(author, name);
+      })
+    );
   }
 
   async execute(statement: InStatement) {
