@@ -37,12 +37,8 @@
 		"views": {
 			"valtown": [
 				{
-					"id": "valtown.vals",
+					"id": "valtown.tree",
 					"name": "Vals"
-				},
-				{
-					"id": "valtown.pins",
-					"name": "Pins"
 				},
 				{
 					"id": "valtown.references",
@@ -64,12 +60,7 @@
 		},
 		"viewsWelcome": [
 			{
-				"view": "valtown.pins",
-				"contents": "Set your Val Town token to use this extension.\n[Set Token](command:valtown.setToken)\n[API Tokens](https://www.val.town/settings/api)",
-				"when": "!valtown.loggedIn"
-			},
-			{
-				"view": "valtown.vals",
+				"view": "valtown.tree",
 				"contents": "Set your Val Town token to use this extension.\n[Set Token](command:valtown.setToken)\n[API Tokens](https://www.val.town/settings/api)",
 				"when": "!valtown.loggedIn"
 			},
@@ -297,18 +288,6 @@
 				"category": "Val Town",
 				"title": "Configure Vals Folders",
 				"icon": "$(gear)"
-			},
-			{
-				"command": "valtown.pins.config",
-				"category": "Val Town",
-				"title": "Configure Pins",
-				"icon": "$(gear)"
-			},
-			{
-				"command": "valtown.pins.refresh",
-				"category": "Val Town",
-				"title": "Refresh Pins",
-				"icon": "$(refresh)"
 			}
 		],
 		"configuration": [
@@ -321,15 +300,7 @@
 						"description": "The Val Town API endpoint to use.",
 						"default": "https://api.val.town"
 					},
-					"valtown.pins": {
-						"type": "array",
-						"description": "Pinned Vals.",
-						"items": {
-							"type": "string",
-							"pattern": "^@[a-zA-Z0-9_]+/[a-zA-Z0-9_]+$"
-						}
-					},
-					"valtown.folders": {
+					"valtown.tree": {
 						"type": "array",
 						"description": "Val Tree.",
 						"items": {
@@ -347,6 +318,9 @@
 								"url": {
 									"type": "string",
 									"description": "The url to fetch the vals from."
+								},
+								"items": {
+									"type": "array"
 								}
 							},
 							"default": {
@@ -486,15 +460,7 @@
 					"when": "false"
 				},
 				{
-					"command": "valtown.pins.config",
-					"when": "false"
-				},
-				{
 					"command": "valtown.vals.config",
-					"when": "false"
-				},
-				{
-					"command": "valtown.pins.refresh",
 					"when": "false"
 				}
 			],
@@ -515,22 +481,22 @@
 				{
 					"command": "valtown.createVal",
 					"group": "navigation@1",
-					"when": "view == valtown.vals && valtown.loggedIn"
+					"when": "view == valtown.tree && valtown.loggedIn"
 				},
 				{
 					"command": "valtown.createValFromTemplate",
 					"group": "navigation@2",
-					"when": "view == valtown.vals && valtown.loggedIn"
+					"when": "view == valtown.tree && valtown.loggedIn"
 				},
 				{
 					"command": "valtown.vals.config",
 					"group": "navigation@3",
-					"when": "view == valtown.vals && valtown.loggedIn"
+					"when": "view == valtown.tree && valtown.loggedIn"
 				},
 				{
 					"command": "valtown.refresh",
 					"group": "navigation@4",
-					"when": "view == valtown.vals && valtown.loggedIn"
+					"when": "view == valtown.tree && valtown.loggedIn"
 				},
 				{
 					"command": "valtown.blob.create",
@@ -556,16 +522,6 @@
 					"command": "valtown.sqlite.refresh",
 					"group": "navigation@2",
 					"when": "view == valtown.sqlite && valtown.loggedIn"
-				},
-				{
-					"command": "valtown.pins.config",
-					"group": "navigation@1",
-					"when": "view == valtown.pins"
-				},
-				{
-					"command": "valtown.pins.refresh",
-					"group": "navigation@2",
-					"when": "view == valtown.pins"
 				}
 			],
 			"view/item/context": [

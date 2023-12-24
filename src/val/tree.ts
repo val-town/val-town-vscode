@@ -6,8 +6,7 @@ type ValTreeItem = vscode.TreeItem & { val?: BaseVal };
 type ValFolder = {
   title: string;
   icon?: string;
-  url: string;
-};
+} & ({ url: string } | { items: (string | ValFolder)[] });
 
 export function valIcon(privacy: "public" | "private" | "unlisted") {
   switch (privacy) {
@@ -18,6 +17,17 @@ export function valIcon(privacy: "public" | "private" | "unlisted") {
     case "unlisted":
       return new vscode.ThemeIcon("link");
   }
+}
+
+function folderToTreeItem(folder: ValFolder) {
+  return {
+    label: folder.title,
+    iconPath: folder.icon
+      ? new vscode.ThemeIcon(folder.icon)
+      : new vscode.ThemeIcon("folder"),
+    collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
+    ...folder,
+  };
 }
 
 function valToTreeItem(
@@ -73,17 +83,9 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
 
     if (!element) {
       const config = vscode.workspace.getConfiguration("valtown");
-      const folders = config.get<ValFolder[]>("folders", []);
+      const folders = config.get<ValFolder[]>("tree", []);
 
-      return folders.map((folder, idx) => ({
-        idx,
-        label: folder.title,
-        iconPath: folder.icon
-          ? new vscode.ThemeIcon(folder.icon)
-          : new vscode.ThemeIcon("folder"),
-        collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
-        ...folder,
-      }));
+      return folders.map(folderToTreeItem);
     }
 
     if ("val" in element && element.val) {
@@ -127,6 +129,35 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
             : vscode.TreeItemCollapsibleState.None,
         )
       );
+    }
+
+    if ("items" in element) {
+      const items = await Promise.all(
+        element.items.map(async (item) => {
+          if (typeof item === "object") {
+            return folderToTreeItem(item);
+          }
+          const [author, name] = item.slice(1).split("/");
+          const val = await this.client.resolveAlias(author, name);
+          return valToTreeItem(
+            val,
+            hasDeps(val)
+              ? vscode.TreeItemCollapsibleState.Collapsed
+              : vscode.TreeItemCollapsibleState.None,
+          );
+        }),
+      );
+
+      if (items.length === 0) {
+        return [
+          {
+            label: "No pinned vals found",
+            collapsibleState: vscode.TreeItemCollapsibleState.None,
+          },
+        ];
+      }
+
+      return items;
     }
 
     // TODO: This is a bit of a hack, but it works for now
@@ -197,75 +228,6 @@ class DependencyTreeViewProvider
   }
 }
 
-class PinTreeViewProvider implements vscode.TreeDataProvider<ValTreeItem> {
-  private _onDidChangeTreeData: vscode.EventEmitter<
-    ValTreeItem | undefined | null | void
-  > = new vscode.EventEmitter<ValTreeItem | undefined | null | void>();
-  readonly onDidChangeTreeData: vscode.Event<
-    ValTreeItem | undefined | null | void
-  > = this._onDidChangeTreeData.event;
-
-  refresh() {
-    this._onDidChangeTreeData.fire();
-  }
-
-  constructor(private client: ValtownClient) {}
-
-  async getChildren(element?: ValTreeItem | undefined) {
-    if (!element) {
-      const config = vscode.workspace.getConfiguration("valtown");
-      const pins = config.get<string[]>("pins", []);
-      const vals = await Promise.all(
-        pins.map((pin) => {
-          const [author, name] = pin.slice(1).split("/");
-          return this.client.resolveAlias(author, name);
-        }),
-      );
-
-      if (vals.length === 0) {
-        return [
-          {
-            label: "No pinned vals found",
-            collapsibleState: vscode.TreeItemCollapsibleState.None,
-          },
-        ];
-      }
-
-      return vals.map((val) =>
-        valToTreeItem(
-          val,
-          hasDeps(val)
-            ? vscode.TreeItemCollapsibleState.Collapsed
-            : vscode.TreeItemCollapsibleState.None,
-        )
-      );
-    }
-
-    const vals = await this.client.extractDependencies(element.val!.code);
-    if (vals.length === 0) {
-      return [
-        {
-          label: "No dependencies found",
-          collapsibleState: vscode.TreeItemCollapsibleState.None,
-        },
-      ];
-    }
-
-    return vals.map((val) =>
-      valToTreeItem(
-        val,
-        hasDeps(val)
-          ? vscode.TreeItemCollapsibleState.Collapsed
-          : vscode.TreeItemCollapsibleState.None,
-      )
-    );
-  }
-
-  getTreeItem(element: ValTreeItem) {
-    return element;
-  }
-}
-
 class ReferenceTreeViewProvider
   implements vscode.TreeDataProvider<ValTreeItem> {
   constructor(private client: ValtownClient) {}
@@ -323,7 +285,7 @@ export async function registerValTreeView(
 ) {
   const valTree = new ValTreeView(client);
   context.subscriptions.push(
-    vscode.window.createTreeView("valtown.vals", {
+    vscode.window.createTreeView("valtown.tree", {
       treeDataProvider: valTree,
       showCollapseAll: true,
     }),
@@ -331,7 +293,7 @@ export async function registerValTreeView(
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration("valtown.folders")) {
+      if (e.affectsConfiguration("valtown.tree")) {
         valTree.refresh();
       }
     }),
@@ -350,18 +312,6 @@ export async function registerValTreeView(
     ),
   );
 
-  const pins = new PinTreeViewProvider(client);
-  context.subscriptions.push(
-    vscode.window.registerTreeDataProvider("valtown.pins", pins),
-  );
-  context.subscriptions.push(
-    vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration("valtown.pins")) {
-        pins.refresh();
-      }
-    }),
-  );
-
   vscode.window.onDidChangeActiveTextEditor((editor) => {
     if (editor?.document.uri.scheme === "vt+val") {
       referenceTree.refresh();
@@ -375,21 +325,11 @@ export async function registerValTreeView(
     }),
     vscode.commands.registerCommand("valtown.vals.refresh", async () => {
       valTree.refresh();
-      pins.refresh();
-    }),
-    vscode.commands.registerCommand("valtown.pins.refresh", async () => {
-      pins.refresh();
     }),
     vscode.commands.registerCommand("valtown.vals.config", async () => {
       await vscode.commands.executeCommand(
         "workbench.action.openSettings",
-        "valtown.folders",
-      );
-    }),
-    vscode.commands.registerCommand("valtown.pins.config", async () => {
-      await vscode.commands.executeCommand(
-        "workbench.action.openSettings",
-        "valtown.pins",
+        "valtown.tree",
       );
     }),
   );
