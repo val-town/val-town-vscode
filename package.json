@@ -2,7 +2,7 @@
 	"name": "valtown",
 	"displayName": "Val Town",
 	"description": "VS Code integration for val.town",
-	"version": "0.6.4",
+	"version": "0.6.5",
 	"publisher": "pomdtr",
 	"private": true,
 	"icon": "./assets/icon.png",
