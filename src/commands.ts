@@ -71,7 +71,10 @@ export function registerCommands(
           return;
         }
 
-        const val = await client.createVal(template.value);
+        const val = await client.createVal({
+          template: template.value,
+          privacy: template.value === "cron" ? "private" : "unlisted",
+        });
         vscode.commands.executeCommand(
           "vscode.open",
           vscode.Uri.parse(
