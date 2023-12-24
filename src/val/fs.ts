@@ -30,7 +30,7 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
 
   async delete(uri: vscode.Uri) {
     const val = await this.extractVal(uri);
-    this.client.deleteVal(val.id);
+    await this.client.deleteVal(val.id);
     this._emitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
     vscode.commands.executeCommand("valtown.refresh");
   }
