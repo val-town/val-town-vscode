@@ -37,12 +37,12 @@
 		"views": {
 			"valtown": [
 				{
-					"id": "valtown.pins",
-					"name": "Pins"
-				},
-				{
 					"id": "valtown.vals",
 					"name": "Vals"
+				},
+				{
+					"id": "valtown.pins",
+					"name": "Pins"
 				},
 				{
 					"id": "valtown.references",
@@ -298,10 +298,22 @@
 				"title": "Drop Table"
 			},
 			{
+				"command": "valtown.vals.config",
+				"category": "Val Town",
+				"title": "Configure Vals Folders",
+				"icon": "$(gear)"
+			},
+			{
 				"command": "valtown.pins.config",
 				"category": "Val Town",
 				"title": "Configure Pins",
 				"icon": "$(gear)"
+			},
+			{
+				"command": "valtown.pins.refresh",
+				"category": "Val Town",
+				"title": "Refresh Pins",
+				"icon": "$(refresh)"
 			}
 		],
 		"configuration": [
@@ -340,11 +352,12 @@
 								"url": {
 									"type": "string",
 									"description": "The url to fetch the vals from."
-								},
-								"expanded": {
-									"type": "boolean",
-									"description": "Whether the folder is expanded by default."
 								}
+							},
+							"default": {
+								"title": "Steve's Vals",
+								"icon": "account",
+								"url": "https://api.val.town/v1/users/a0bf3b31-15a5-4d5c-880e-4b1e22c9bc18/vals"
 							}
 						},
 						"default": [
@@ -492,6 +505,14 @@
 				{
 					"command": "valtown.pins.config",
 					"when": "false"
+				},
+				{
+					"command": "valtown.vals.config",
+					"when": "false"
+				},
+				{
+					"command": "valtown.pins.refresh",
+					"when": "false"
 				}
 			],
 			"editor/title": [
@@ -524,8 +545,13 @@
 					"when": "view == valtown.vals && valtown.loggedIn"
 				},
 				{
+					"command": "valtown.vals.config",
+					"group": "navigation@3",
+					"when": "view == valtown.vals && valtown.loggedIn"
+				},
+				{
 					"command": "valtown.refresh",
-					"group": "navigation@5",
+					"group": "navigation@4",
 					"when": "view == valtown.vals && valtown.loggedIn"
 				},
 				{
@@ -556,6 +582,11 @@
 				{
 					"command": "valtown.pins.config",
 					"group": "navigation@1",
+					"when": "view == valtown.pins"
+				},
+				{
+					"command": "valtown.pins.refresh",
+					"group": "navigation@2",
 					"when": "view == valtown.pins"
 				}
 			],
