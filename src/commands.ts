@@ -108,39 +108,6 @@ export function registerCommands(
 
       vscode.workspace.fs.rename(oldURI, newURI, { overwrite: false });
     }),
-    vscode.commands.registerCommand("valtown.setPrivacy", async (arg) => {
-      const privacy = await vscode.window.showQuickPick<
-        vscode.QuickPickItem & {
-          value: "public" | "unlisted" | "private";
-        }
-      >(
-        [
-          {
-            label: "Public",
-            description: "Anyone can see and run this val",
-            value: "public",
-          },
-          {
-            label: "Unlisted",
-            description: "Anyone with the link can see and run this val",
-            value: "unlisted",
-          },
-          {
-            label: "Private",
-            description: "Only you can see and run this val",
-            value: "private",
-          },
-        ],
-        { title: "Select val privacy" },
-      );
-
-      if (!privacy || privacy.value == arg.val.privacy) {
-        return;
-      }
-
-      await client.setPrivacy(arg.val.id, privacy.value);
-      await vscode.commands.executeCommand("valtown.refresh");
-    }),
     vscode.commands.registerCommand("valtown.setPublic", async (arg) => {
       await client.setPrivacy(arg.val.id, "public");
       await vscode.commands.executeCommand("valtown.refresh");

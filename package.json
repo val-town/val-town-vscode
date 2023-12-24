@@ -138,12 +138,6 @@
 				"icon": "$(edit)"
 			},
 			{
-				"command": "valtown.setPrivacy",
-				"title": "Set Privacy",
-				"category": "Val Town",
-				"icon": "$(eye)"
-			},
-			{
 				"command": "valtown.setPrivate",
 				"title": "Private",
 				"category": "Val Town"
@@ -408,10 +402,6 @@
 					"when": "false"
 				},
 				{
-					"command": "valtown.setPrivacy",
-					"when": "false"
-				},
-				{
 					"command": "valtown.setPrivate",
 					"when": "false"
 				},
@@ -638,17 +628,17 @@
 			"valtown.submenus.privacy": [
 				{
 					"command": "valtown.setPrivate",
-					"group": "navigation@2",
+					"group": "navigation@1",
 					"when": "viewItem == val"
 				},
 				{
 					"command": "valtown.setUnlisted",
-					"group": "navigation@3",
+					"group": "navigation@2",
 					"when": "viewItem == val"
 				},
 				{
 					"command": "valtown.setPublic",
-					"group": "navigation@1",
+					"group": "navigation@3",
 					"when": "viewItem == val"
 				}
 			],
