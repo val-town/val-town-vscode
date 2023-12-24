@@ -108,22 +108,22 @@
 				"icon": "$(new-file)"
 			},
 			{
+				"command": "valtown.openPreview",
+				"title": "Open Preview",
+				"category": "Val Town",
+				"icon": "$(preview)"
+			},
+			{
+				"command": "valtown.openPreviewToSide",
+				"title": "Open Preview to the Side",
+				"category": "Val Town",
+				"icon": "$(open-preview)"
+			},
+			{
 				"command": "valtown.deleteVal",
 				"title": "Delete Val",
 				"category": "Val Town",
 				"icon": "$(trash)"
-			},
-			{
-				"command": "valtown.openReadme",
-				"title": "Open Readme",
-				"category": "Val Town",
-				"icon": "$(book)"
-			},
-			{
-				"command": "valtown.openReadmeToSide",
-				"title": "Open Readme to the Side",
-				"category": "Val Town",
-				"icon": "$(open-preview)"
 			},
 			{
 				"command": "valtown.refresh",
@@ -290,7 +290,8 @@
 			{
 				"command": "valtown.sqlite.previewTable",
 				"category": "Val Town",
-				"title": "Preview Table"
+				"title": "Preview Table",
+				"icon": "$(open-preview)"
 			},
 			{
 				"command": "valtown.sqlite.dropTable",
@@ -403,14 +404,6 @@
 					"when": "false"
 				},
 				{
-					"command": "valtown.openReadme",
-					"when": "false"
-				},
-				{
-					"command": "valtown.openReadmeToSide",
-					"when": "false"
-				},
-				{
 					"command": "valtown.refresh",
 					"when": "false"
 				},
@@ -517,20 +510,15 @@
 			],
 			"editor/title": [
 				{
+					"command": "valtown.openPreviewToSide",
+					"alt": "valtown.openPreview",
+					"group": "navigation@1",
+					"when": "resourceScheme == 'vt+val'"
+				},
+				{
 					"command": "valtown.openValUrl",
 					"group": "navigation@1",
-					"when": "resourceScheme == 'vt+val' && resourceLangId != markdown"
-				},
-				{
-					"command": "valtown.openReadmeToSide",
-					"alt": "valtown.openReadme",
-					"group": "navigation@2",
-					"when": "resourceScheme == 'vt+val' && resourceLangId != markdown"
-				},
-				{
-					"command": "valtown.sqlite.runQuery",
-					"group": "navigation@1",
-					"when": "resourceLangId == sql && valtown.loggedIn"
+					"when": "resourceScheme == 'vt+val'"
 				}
 			],
 			"view/title": [

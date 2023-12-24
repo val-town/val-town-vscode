@@ -4,7 +4,7 @@ import { BaseVal, ValTemplate, ValtownClient } from "./client";
 
 export function registerCommands(
   context: vscode.ExtensionContext,
-  client: ValtownClient
+  client: ValtownClient,
 ) {
   context.subscriptions.push(
     vscode.commands.registerCommand(
@@ -27,19 +27,18 @@ export function registerCommands(
         }
 
         await saveToken(context, token);
-      }
+      },
     ),
     vscode.commands.registerCommand("valtown.clearToken", async () => {
       await clearToken(context);
     }),
-
     vscode.commands.registerCommand("valtown.createVal", async () => {
       const val = await client.createVal();
       vscode.commands.executeCommand(
         "vscode.open",
         vscode.Uri.parse(
-          `vt+val:/${val.author.username.slice(1)}/${val.name}.tsx`
-        )
+          `vt+val:/${val.author.username.slice(1)}/${val.name}.tsx`,
+        ),
       );
 
       vscode.commands.executeCommand("valtown.refresh");
@@ -66,7 +65,7 @@ export function registerCommands(
           ],
           {
             title: "Select a template",
-          }
+          },
         );
         if (!template) {
           return;
@@ -76,13 +75,12 @@ export function registerCommands(
         vscode.commands.executeCommand(
           "vscode.open",
           vscode.Uri.parse(
-            `vt+val:/${val.author.username.slice(1)}/${val.name}.tsx`
-          )
+            `vt+val:/${val.author.username.slice(1)}/${val.name}.tsx`,
+          ),
         );
         vscode.commands.executeCommand("valtown.refresh");
-      }
+      },
     ),
-
     vscode.commands.registerCommand("valtown.rename", async (arg) => {
       const { val } = arg;
       const name = await vscode.window.showInputBox({
@@ -99,10 +97,10 @@ export function registerCommands(
       }
 
       const oldURI = vscode.Uri.parse(
-        `vt+val:/${val.author.username.slice(1)}/${val.name}.tsx`
+        `vt+val:/${val.author.username.slice(1)}/${val.name}.tsx`,
       );
       const newURI = vscode.Uri.parse(
-        `vt+val:/${val.author.username.slice(1)}/${name}.tsx`
+        `vt+val:/${val.author.username.slice(1)}/${name}.tsx`,
       );
 
       vscode.workspace.fs.rename(oldURI, newURI, { overwrite: false });
@@ -130,7 +128,7 @@ export function registerCommands(
             value: "private",
           },
         ],
-        { title: "Select val privacy" }
+        { title: "Select val privacy" },
       );
 
       if (!privacy || privacy.value == arg.val.privacy) {
@@ -152,49 +150,10 @@ export function registerCommands(
       await client.setPrivacy(arg.val.id, "private");
       await vscode.commands.executeCommand("valtown.refresh");
     }),
-    vscode.commands.registerCommand("valtown.openReadme", async (arg) => {
-      let readmeUri: vscode.Uri;
-      if ("val" in arg) {
-        const { author, name } = arg.val;
-        readmeUri = vscode.Uri.parse(
-          `vt+val:/${author.username.slice(1)}/${name}.md`
-        );
-      } else {
-        const [author, filename] = arg.path.slice(1).split("/");
-        readmeUri = vscode.Uri.parse(
-          `vt+val:/${author}/${filename.split(".")[0]}.md`
-        );
-      }
-      vscode.commands.executeCommand(
-        "vscode.openWith",
-        readmeUri,
-        "vscode.markdown.preview.editor"
-      );
-    }),
-    vscode.commands.registerCommand("valtown.openReadmeToSide", async (arg) => {
-      let readmeUri: vscode.Uri;
-      if ("val" in arg) {
-        const { author, name } = arg.val;
-        readmeUri = vscode.Uri.parse(
-          `vt+val:/${author.username.slice(1)}/${name}.md`
-        );
-      } else {
-        const [author, filename] = arg.path.slice(1).split("/");
-        readmeUri = vscode.Uri.parse(
-          `vt+val:/${author}/${filename.split(".")[0]}.md`
-        );
-      }
-      vscode.commands.executeCommand(
-        "vscode.openWith",
-        readmeUri,
-        "vscode.markdown.preview.editor",
-        vscode.ViewColumn.Beside
-      );
-    }),
     vscode.commands.registerCommand("valtown.copyModuleURL", async (arg) => {
       const { name, author } = arg.val;
       vscode.env.clipboard.writeText(
-        `https://esm.town/v/${author.username.slice(1)}/${name}`
+        `https://esm.town/v/${author.username.slice(1)}/${name}`,
       );
       vscode.window.showInformationMessage(`Module URL copied to clipboard`);
     }),
@@ -206,7 +165,7 @@ export function registerCommands(
       const { author, name } = arg.val as BaseVal;
 
       vscode.workspace.fs.delete(
-        vscode.Uri.parse(`vt+val:/${author.username.slice(1)}/${name}.tsx`)
+        vscode.Uri.parse(`vt+val:/${author.username.slice(1)}/${name}.tsx`),
       );
 
       await vscode.commands.executeCommand("valtown.refresh");
@@ -214,7 +173,7 @@ export function registerCommands(
     vscode.commands.registerCommand("valtown.copyValUrl", async (arg) => {
       const { author, name } = arg.val;
       vscode.env.clipboard.writeText(
-        `https://val.town/v/${author.username.slice(1)}/${name}`
+        `https://val.town/v/${author.username.slice(1)}/${name}`,
       );
       vscode.window.showInformationMessage(`Val link copied to clipboard`);
     }),
@@ -234,14 +193,16 @@ export function registerCommands(
       const { author, name } = arg.val;
       // prettier-ignore
       vscode.env.clipboard.writeText(
-        `<script type="module" src="https://val.town/v/${author.username.slice(1)}/${name}"></script>`
+        `<script type="module" src="https://val.town/v/${
+          author.username.slice(1)
+        }/${name}"></script>`,
       );
       vscode.window.showInformationMessage(`Script tag copied to clipboard`);
     }),
     vscode.commands.registerCommand("valtown.copyEmailAddress", async (arg) => {
       const { author, name } = arg.val;
       vscode.env.clipboard.writeText(
-        `${author.username.slice(1)}.${name}@valtown.email`
+        `${author.username.slice(1)}.${name}@valtown.email`,
       );
       vscode.window.showInformationMessage(`Email Address copied to clipboard`);
     }),
@@ -249,35 +210,36 @@ export function registerCommands(
       const { author, name } = arg.val;
       await vscode.env.openExternal(
         vscode.Uri.parse(
-          `https://val.town/v/${author?.username?.slice(1)}/${name}/evaluations`
-        )
+          `https://val.town/v/${
+            author?.username?.slice(1)
+          }/${name}/evaluations`,
+        ),
       );
     }),
     vscode.commands.registerCommand("valtown.copyEmbedUrl", async (arg) => {
       const { author, name } = arg.val;
       vscode.env.clipboard.writeText(
-        `https://val.town/embed/${author.username.slice(1)}.${name}`
+        `https://val.town/embed/${author.username.slice(1)}.${name}`,
       );
       vscode.window.showInformationMessage(`Embed URL to clipboard`);
     }),
     vscode.commands.registerCommand("valtown.copyHttpEndpoint", async (arg) => {
       const { author, name } = arg.val;
       vscode.env.clipboard.writeText(
-        `https://${author.username.slice(1)}-${name}.web.val.run`
+        `https://${author.username.slice(1)}-${name}.web.val.run`,
       );
       vscode.window.showInformationMessage(
-        `Val HTTP endpoint copied to clipboard`
+        `Val HTTP endpoint copied to clipboard`,
       );
     }),
     vscode.commands.registerCommand("valtown.openHttpEndpoint", async (arg) => {
       const { author, name } = arg.val;
       vscode.env.openExternal(
         vscode.Uri.parse(
-          `https://${author.username.slice(1)}-${name}.web.val.run`
-        )
+          `https://${author.username.slice(1)}-${name}.web.val.run`,
+        ),
       );
     }),
-
     vscode.commands.registerCommand("valtown.open", async () => {
       const slugRegex = /^@[a-zA-Z0-9-_]+\/[a-zA-Z0-9-_]+$/;
       const urlRegex =
@@ -303,6 +265,48 @@ export function registerCommands(
         valUri = vscode.Uri.parse(`vt+val:/${author}/${name}.tsx`);
       }
       vscode.commands.executeCommand("vscode.open", valUri);
-    })
+    }),
+    vscode.commands.registerCommand(
+      "valtown.openPreviewToSide",
+      async (arg) => {
+        let httpEndpoint: string;
+        if ("val" in arg) {
+          const { author, name } = arg.val;
+          httpEndpoint = `https://${
+            author.username.slice(1)
+          }-${name}.web.val.run`;
+        } else {
+          const [author, filename] = arg.path.slice(1).split("/");
+          httpEndpoint = `https://${author}-${
+            filename.split(".")[0]
+          }.web.val.run`;
+        }
+        vscode.commands.executeCommand(
+          "simpleBrowser.api.open",
+          httpEndpoint,
+          {
+            viewColumn: vscode.ViewColumn.Beside,
+          },
+        );
+      },
+    ),
+    vscode.commands.registerCommand("valtown.openPreview", async (arg) => {
+      let httpEndpoint: string;
+      if ("val" in arg) {
+        const { author, name } = arg.val;
+        httpEndpoint = `https://${
+          author.username.slice(1)
+        }-${name}.web.val.run`;
+      } else {
+        const [author, filename] = arg.path.slice(1).split("/");
+        httpEndpoint = `https://${author}-${
+          filename.split(".")[0]
+        }.web.val.run`;
+      }
+      vscode.commands.executeCommand(
+        "simpleBrowser.api.open",
+        httpEndpoint,
+      );
+    }),
   );
 }

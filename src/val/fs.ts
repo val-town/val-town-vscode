@@ -25,13 +25,7 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
 
   async readFile(uri: vscode.Uri) {
     const val = await this.extractVal(uri);
-    if (uri.path.endsWith(".tsx")) {
-      return new TextEncoder().encode(val.code || "");
-    } else if (uri.path.endsWith(".md")) {
-      return new TextEncoder().encode(val.readme || "");
-    } else {
-      throw vscode.FileSystemError.FileNotFound(uri);
-    }
+    return new TextEncoder().encode(val.code || "");
   }
 
   async delete(uri: vscode.Uri) {
@@ -44,7 +38,7 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
   async rename(
     oldUri: vscode.Uri,
     newUri: vscode.Uri,
-    options: { readonly overwrite: boolean }
+    options: { readonly overwrite: boolean },
   ) {
     const oldVal = await this.extractVal(oldUri);
     const name = newUri.path.split("/").pop()?.replace(".tsx", "");
@@ -74,16 +68,11 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
     const val = await this.extractVal(uri);
     const user = await this.client.user();
 
-    let readonly = false;
-    if (uri.path.endsWith(".md")) {
-      readonly = true;
-    } else if (val.author.id !== user.id) {
-      readonly = true;
-    }
-
     return {
       type: vscode.FileType.File,
-      permissions: readonly ? vscode.FilePermission.Readonly : undefined,
+      permissions: val.author.id !== user.id
+        ? vscode.FilePermission.Readonly
+        : undefined,
       ctime: new Date(val.createdAt).getTime(),
       mtime: new Date(val.runStartAt).getTime(),
       size: new TextEncoder().encode(val.code || "").length,
@@ -93,7 +82,7 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
   async writeFile(
     uri: vscode.Uri,
     content: Uint8Array,
-    options: { readonly create: boolean; readonly overwrite: boolean }
+    options: { readonly create: boolean; readonly overwrite: boolean },
   ) {
     const val = await this.extractVal(uri);
     await this.client.writeVal(val.id, new TextDecoder().decode(content));
@@ -105,7 +94,7 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
     options: {
       readonly recursive: boolean;
       readonly excludes: readonly string[];
-    }
+    },
   ): vscode.Disposable {
     return new vscode.Disposable(() => {});
   }
@@ -126,7 +115,7 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
     const vals = await this.client.paginate(`/users/${user.id}/vals`);
     return vals.map(
       (val) =>
-        [`${val.name}.tsx`, vscode.FileType.File] as [string, vscode.FileType]
+        [`${val.name}.tsx`, vscode.FileType.File] as [string, vscode.FileType],
     );
   }
 }
