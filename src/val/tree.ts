@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { BaseVal, ValtownClient } from "../client";
+import { BaseVal, FullVal, ValtownClient } from "../client";
 import { Renderer } from "../template";
 
 type ValTreeItem = vscode.TreeItem & { val?: BaseVal };
@@ -166,8 +166,17 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
 
             return folderToTreeItem(item);
           }
-          const [author, name] = item.slice(1).split("/");
-          const val = await this.client.resolveValAlias(author, name);
+
+          let val: FullVal;
+          if (item.startsWith("https")) {
+            const url = new URL(item);
+            const [author, name] = url.pathname.slice(3).split("/");
+            val = await this.client.resolveValAlias(author, name);
+          } else {
+            const [author, name] = item.split("/");
+            val = await this.client.resolveValAlias(author, name);
+          }
+
           return valToTreeItem(
             val,
             hasDeps(val)

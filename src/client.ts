@@ -404,7 +404,7 @@ export class ValtownClient {
     );
 
     if (!resp.ok) {
-      throw new Error("Failed to resolve val");
+      throw new Error(`Failed to resolve val: @${username}/${valname}`);
     }
 
     return resp.json() as Promise<FullVal>;
