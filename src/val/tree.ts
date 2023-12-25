@@ -65,6 +65,7 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
   private renderer: Renderer;
   constructor(private client: ValtownClient) {
     this.renderer = new Renderer({
+      encodeURIComponent,
       user: async (arg) => {
         if (!arg) {
           throw new Error("Missing argument");
@@ -101,18 +102,7 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
 
     if (!element) {
       const config = vscode.workspace.getConfiguration("valtown");
-      const folders = await Promise.all(
-        config.get<ValFolder[]>("tree", []).map(
-          async (folder) => {
-            if ("url" in folder) {
-              folder.url = await this.renderer.renderTemplate(folder.url);
-            }
-            return folder;
-          },
-        ),
-      );
-
-      return folders.map(folderToTreeItem);
+      return config.get<ValFolder[]>("tree", []).map(folderToTreeItem);
     }
 
     if ("val" in element && element.val) {
@@ -137,7 +127,8 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
     }
 
     if ("url" in element) {
-      const vals = await this.client.paginate(element.url);
+      const url = await this.renderer.render(element.url);
+      const vals = await this.client.paginate(url);
       if (vals.length === 0) {
         return [
           {
@@ -160,10 +151,6 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
       const items = await Promise.all(
         element.items.map(async (item) => {
           if (typeof item === "object") {
-            if ("url" in item) {
-              item.url = await this.renderer.renderTemplate(item.url);
-            }
-
             return folderToTreeItem(item);
           }
 
