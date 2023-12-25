@@ -154,15 +154,8 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
             return folderToTreeItem(item);
           }
 
-          let val: FullVal;
-          if (item.startsWith("https")) {
-            const url = new URL(item);
-            const [author, name] = url.pathname.slice(3).split("/");
-            val = await this.client.resolveVal(author, name);
-          } else {
-            const [author, name] = item.split("/");
-            val = await this.client.resolveVal(author, name);
-          }
+          const [author, name] = item.split("/");
+          const val = await this.client.resolveVal(author, name);
 
           return valToTreeItem(
             val,

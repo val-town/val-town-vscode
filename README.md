@@ -33,8 +33,6 @@ You can configure the sidebar val tree by editing the `valtown.tree` entry in yo
   "valtown.tree": [
     // Add a val to your sidebar
     "@stevekrouse/fetchJSON",
-     // Or use the val url
-    "https://val.town/v/pomdtr/blog",
     // You can also pass an api endpoint, that must a paginated list of vals
     {
       "title": "Liked Vals",
@@ -72,9 +70,9 @@ You can configure the sidebar val tree by editing the `valtown.tree` entry in yo
           "path": "https://api.val.town/api/v1/users/search?query=${encodeURIComponent:#vscode}"
         },
         {
-          "title": "#tags",
-          "icon": "tag",
-          "path": "https://api.val.town/api/v1/users/search?query=${encodeURIComponent:#tags}"
+          "title": "#blob",
+          "icon": "blog",
+          "path": "https://api.val.town/api/v1/users/search?query=${encodeURIComponent:#blog}"
         },
       ]
     },
