@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { BaseVal, ValtownClient } from "../client";
+import { Renderer } from "../template";
 
 type ValTreeItem = vscode.TreeItem & { val?: BaseVal };
 
@@ -61,7 +62,24 @@ function hasDeps(val: BaseVal) {
 }
 
 export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
-  constructor(private client: ValtownClient) {}
+  private renderer: Renderer;
+  constructor(private client: ValtownClient) {
+    this.renderer = new Renderer({
+      user: async (arg) => {
+        if (!arg) {
+          throw new Error("Missing argument");
+        }
+
+        if (arg == "me") {
+          const user = await this.client.user();
+          return user.id;
+        }
+
+        const user = await this.client.resolveUserAlias(arg);
+        return user.id;
+      },
+    });
+  }
 
   private _onDidChangeTreeData: vscode.EventEmitter<
     vscode.TreeItem | undefined | null | void
@@ -83,7 +101,16 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
 
     if (!element) {
       const config = vscode.workspace.getConfiguration("valtown");
-      const folders = config.get<ValFolder[]>("tree", []);
+      const folders = await Promise.all(
+        config.get<ValFolder[]>("tree", []).map(
+          async (folder) => {
+            if ("url" in folder) {
+              folder.url = await this.renderer.renderTemplate(folder.url);
+            }
+            return folder;
+          },
+        ),
+      );
 
       return folders.map(folderToTreeItem);
     }
@@ -110,8 +137,6 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
     }
 
     if ("url" in element) {
-      const user = await this.client.user();
-      element.url = element.url.replace("${uid}", user.id);
       const vals = await this.client.paginate(element.url);
       if (vals.length === 0) {
         return [
@@ -135,10 +160,14 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
       const items = await Promise.all(
         element.items.map(async (item) => {
           if (typeof item === "object") {
+            if ("url" in item) {
+              item.url = await this.renderer.renderTemplate(item.url);
+            }
+
             return folderToTreeItem(item);
           }
           const [author, name] = item.slice(1).split("/");
-          const val = await this.client.resolveAlias(author, name);
+          const val = await this.client.resolveValAlias(author, name);
           return valToTreeItem(
             val,
             hasDeps(val)

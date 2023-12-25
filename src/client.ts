@@ -383,19 +383,22 @@ export class ValtownClient {
     );
   }
 
-  async resolveAlias(username: string, valname?: string) {
+  async resolveUserAlias(username: string) {
     if (username.startsWith("@")) {
       username = username.slice(1);
     }
-    if (!valname) {
-      const resp = await this.fetch(`${this.endpoint}/v1/alias/${username}`);
-      if (!resp.ok) {
-        throw new Error("Failed to resolve val");
-      }
-
-      return resp.json();
+    const resp = await this.fetch(`${this.endpoint}/v1/alias/${username}`);
+    if (!resp.ok) {
+      throw new Error("Failed to resolve val");
     }
 
+    return resp.json() as Promise<User>;
+  }
+
+  async resolveValAlias(username: string, valname: string) {
+    if (username.startsWith("@")) {
+      username = username.slice(1);
+    }
     const resp = await this.fetch(
       `${this.endpoint}/v1/alias/${username}/${valname}`,
     );
@@ -404,7 +407,7 @@ export class ValtownClient {
       throw new Error("Failed to resolve val");
     }
 
-    return resp.json();
+    return resp.json() as Promise<FullVal>;
   }
 
   async extractDependencies(code: string) {
@@ -419,7 +422,7 @@ export class ValtownClient {
     return await Promise.all(
       matches.map(async (match) => {
         const [, author, name] = match;
-        return this.resolveAlias(author, name);
+        return this.resolveValAlias(author, name);
       }),
     );
   }

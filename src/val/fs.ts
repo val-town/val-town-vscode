@@ -13,7 +13,7 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
   async extractVal(uri: vscode.Uri): Promise<FullVal> {
     const [author, filename] = uri.path.slice(1).split("/");
     const name = filename.split(".")[0];
-    return this.client.resolveAlias(author, name);
+    return this.client.resolveValAlias(author, name);
   }
 
   static extractVersion(uri: vscode.Uri) {
@@ -110,7 +110,7 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
     }
 
     const username = uri.path.split("/").pop() || "";
-    const user = await this.client.resolveAlias(username);
+    const user = await this.client.resolveValAlias(username);
 
     const vals = await this.client.paginate(`/users/${user.id}/vals`);
     return vals.map(
