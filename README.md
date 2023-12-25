@@ -28,7 +28,7 @@ Use the `Val Town: Set Token` command to set your api token, that you can get fr
 
 You can configure the sidebar val tree by editing the `valtown.tree` entry in your settings.
 
-```json
+```jsonc
 {
   "valtown.tree": [
     // Add a val to your sidebar
