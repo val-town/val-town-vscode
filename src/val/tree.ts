@@ -75,7 +75,7 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
           return user.id;
         }
 
-        const user = await this.client.resolveUserAlias(arg);
+        const user = await this.client.resolveUser(arg);
         return user.id;
       },
     });
@@ -171,10 +171,10 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
           if (item.startsWith("https")) {
             const url = new URL(item);
             const [author, name] = url.pathname.slice(3).split("/");
-            val = await this.client.resolveValAlias(author, name);
+            val = await this.client.resolveVal(author, name);
           } else {
             const [author, name] = item.split("/");
-            val = await this.client.resolveValAlias(author, name);
+            val = await this.client.resolveVal(author, name);
           }
 
           return valToTreeItem(

@@ -383,7 +383,7 @@ export class ValtownClient {
     );
   }
 
-  async resolveUserAlias(username: string) {
+  async resolveUser(username: string) {
     if (username.startsWith("@")) {
       username = username.slice(1);
     }
@@ -395,7 +395,7 @@ export class ValtownClient {
     return resp.json() as Promise<User>;
   }
 
-  async resolveValAlias(username: string, valname: string) {
+  async resolveVal(username: string, valname: string) {
     if (username.startsWith("@")) {
       username = username.slice(1);
     }
@@ -422,7 +422,7 @@ export class ValtownClient {
     return await Promise.all(
       matches.map(async (match) => {
         const [, author, name] = match;
-        return this.resolveValAlias(author, name);
+        return this.resolveVal(author, name);
       }),
     );
   }

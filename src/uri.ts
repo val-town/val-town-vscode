@@ -17,7 +17,7 @@ export function registerUriHandler(
         }
 
         const [_, author, name] = parts;
-        const val = await client.resolveValAlias(author, name);
+        const val = await client.resolveVal(author, name);
         vscode.commands.executeCommand(
           "vscode.open",
           vscode.Uri.parse(`vt+val:/${author}/${name}.tsx`),
