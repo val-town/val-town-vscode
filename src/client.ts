@@ -348,7 +348,6 @@ export class ValtownClient {
   }
 
   async writeVal(valID: string, code: string) {
-    console.log("writing val", valID, code);
     const resp = await this.fetch(
       `${this.endpoint}/v1/vals/${valID}/versions`,
       {

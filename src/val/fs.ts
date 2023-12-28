@@ -65,18 +65,22 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
       };
     }
 
-    const val = await this.extractVal(uri);
-    const user = await this.client.user();
+    try {
+      const val = await this.extractVal(uri);
+      const user = await this.client.user();
 
-    return {
-      type: vscode.FileType.File,
-      permissions: val.author.id !== user.id
-        ? vscode.FilePermission.Readonly
-        : undefined,
-      ctime: new Date(val.createdAt).getTime(),
-      mtime: new Date(val.runStartAt).getTime(),
-      size: new TextEncoder().encode(val.code || "").length,
-    };
+      return {
+        type: vscode.FileType.File,
+        permissions: val.author.id !== user.id
+          ? vscode.FilePermission.Readonly
+          : undefined,
+        ctime: new Date(val.createdAt).getTime(),
+        mtime: new Date(val.runStartAt).getTime(),
+        size: new TextEncoder().encode(val.code || "").length,
+      };
+    } catch (_) {
+      throw vscode.FileSystemError.FileNotFound(uri);
+    }
   }
 
   async writeFile(
