@@ -28,7 +28,7 @@ export async function activate(context: vscode.ExtensionContext) {
     await vscode.commands.executeCommand(
       "setContext",
       "valtown.loggedIn",
-      true
+      true,
     );
   }
 
@@ -43,7 +43,7 @@ export async function activate(context: vscode.ExtensionContext) {
     await vscode.commands.executeCommand(
       "setContext",
       "valtown.loggedIn",
-      !!token
+      !!token,
     );
     await vscode.commands.executeCommand("valtown.refresh");
     await vscode.commands.executeCommand("valtown.blob.refresh");
@@ -59,7 +59,7 @@ export async function activate(context: vscode.ExtensionContext) {
     await vscode.commands.executeCommand(
       "setContext",
       "valtown.ready",
-      token !== undefined
+      token !== undefined,
     );
     await vscode.commands.executeCommand("valtown.refresh");
   });
@@ -74,7 +74,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerSqliteTreeView;
   outputChannel.appendLine("Registering file system provider");
   registerBlobFileSystemProvider(context, client);
-  registerValFileSystemProvider(client);
+  registerValFileSystemProvider(context, client);
   definition.register(client, context);
   outputChannel.appendLine("Registering commands");
   registerCommands(context, client);

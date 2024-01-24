@@ -25,6 +25,9 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
 
   async readFile(uri: vscode.Uri) {
     const val = await this.extractVal(uri);
+    if (uri.path.endsWith(".md")) {
+      return new TextEncoder().encode(val.readme || "");
+    }
     return new TextEncoder().encode(val.code || "");
   }
 
@@ -89,6 +92,10 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
     options: { readonly create: boolean; readonly overwrite: boolean },
   ) {
     const val = await this.extractVal(uri);
+    if (uri.path.endsWith(".md")) {
+      await this.client.writeReadme(val.id, new TextDecoder().decode(content));
+      return;
+    }
     await this.client.writeVal(val.id, new TextDecoder().decode(content));
     vscode.commands.executeCommand("valtown.refresh");
   }
@@ -124,8 +131,47 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
   }
 }
 
-export function registerValFileSystemProvider(client: ValtownClient) {
+export function registerValFileSystemProvider(
+  context: vscode.ExtensionContext,
+  client: ValtownClient,
+) {
   const fs = new ValFileSystemProvider(client);
 
-  return vscode.workspace.registerFileSystemProvider(FS_SCHEME, fs);
+  context.subscriptions.push(
+    vscode.workspace.registerFileSystemProvider(FS_SCHEME, fs),
+    vscode.commands.registerCommand("valtown.val.openReadme", async (arg) => {
+      let readmeUrl: string;
+      if ("val" in arg) {
+        const { author, name } = arg.val;
+        readmeUrl = `vt+val:/${author.username.slice(1)}/${name}.md`;
+      } else {
+        const [author, filename] = arg.path.slice(1).split("/");
+        const name = filename.split(".")[0];
+        readmeUrl = `vt+val:/${author}/${name}.md`;
+      }
+      vscode.commands.executeCommand(
+        "vscode.open",
+        vscode.Uri.parse(
+          readmeUrl,
+        ),
+      );
+    }),
+    vscode.commands.registerCommand("valtown.val.open", async (arg) => {
+      let readmeUrl: string;
+      if ("val" in arg) {
+        const { author, name } = arg.val;
+        readmeUrl = `vt+val:/${author.username.slice(1)}/${name}.tsx`;
+      } else {
+        const [author, filename] = arg.path.slice(1).split("/");
+        const name = filename.split(".")[0];
+        readmeUrl = `vt+val:/${author}/${name}.tsx`;
+      }
+      vscode.commands.executeCommand(
+        "vscode.open",
+        vscode.Uri.parse(
+          readmeUrl,
+        ),
+      );
+    }),
+  );
 }

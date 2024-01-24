@@ -224,7 +224,7 @@
 			{
 				"command": "valtown.blob.delete",
 				"category": "Val Town",
-				"title": "Delete"
+				"title": "Delete Blob"
 			},
 			{
 				"command": "valtown.blob.create",
@@ -241,8 +241,14 @@
 			{
 				"command": "valtown.blob.download",
 				"category": "Val Town",
-				"title": "Download",
+				"title": "Download Blob",
 				"icon": "$(cloud-download)"
+			},
+			{
+				"command": "valtown.blob.copyKey",
+				"category": "Val Town",
+				"title": "Copy Blob Key",
+				"icon": "$(copy)"
 			},
 			{
 				"command": "valtown.sqlite.refresh",
@@ -288,6 +294,18 @@
 				"category": "Val Town",
 				"title": "Configure Vals Folders",
 				"icon": "$(gear)"
+			},
+			{
+				"command": "valtown.val.openReadme",
+				"category": "Val Town",
+				"title": "Open Val Readme",
+				"icon": "$(markdown)"
+			},
+			{
+				"command": "valtown.val.open",
+				"category": "Val Town",
+				"title": "Open Val",
+				"icon": "$(file-code)"
 			}
 		],
 		"configuration": [
@@ -440,6 +458,10 @@
 					"when": "false"
 				},
 				{
+					"command": "valtown.blob.copyKey",
+					"when": "false"
+				},
+				{
 					"command": "valtown.sqlite.refresh",
 					"when": "false"
 				},
@@ -462,6 +484,14 @@
 				{
 					"command": "valtown.vals.config",
 					"when": "false"
+				},
+				{
+					"command": "valtown.val.openReadme",
+					"when": "false"
+				},
+				{
+					"command": "valtown.val.open",
+					"when": "false"
 				}
 			],
 			"editor/title": [
@@ -469,7 +499,17 @@
 					"command": "valtown.openPreviewToSide",
 					"alt": "valtown.openPreview",
 					"group": "navigation@1",
-					"when": "resourceScheme == 'vt+val'"
+					"when": "resourceScheme == 'vt+val' && resourceLangId != markdown"
+				},
+				{
+					"command": "valtown.val.openReadme",
+					"group": "navigation@1",
+					"when": "resourceScheme == 'vt+val' && resourceLangId != markdown"
+				},
+				{
+					"command": "valtown.val.open",
+					"group": "navigation@1",
+					"when": "resourceScheme == 'vt+val' && resourceLangId == markdown"
 				},
 				{
 					"command": "valtown.openValUrl",
@@ -551,13 +591,18 @@
 					"when": "viewItem == val"
 				},
 				{
-					"command": "valtown.blob.download",
+					"command": "valtown.blob.copyKey",
 					"group": "navigation@1",
 					"when": "viewItem == blob"
 				},
 				{
-					"command": "valtown.blob.delete",
+					"command": "valtown.blob.download",
 					"group": "navigation@2",
+					"when": "viewItem == blob"
+				},
+				{
+					"command": "valtown.blob.delete",
+					"group": "navigation@3",
 					"when": "viewItem == blob"
 				},
 				{

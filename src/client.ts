@@ -366,6 +366,22 @@ export class ValtownClient {
     }
   }
 
+  async writeReadme(valID: string, readme: string) {
+    const resp = await this.fetch(`${this.endpoint}/v1/vals/${valID}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        readme,
+      }),
+    });
+
+    if (!resp.ok) {
+      throw new Error("Failed to write val");
+    }
+  }
+
   async deleteVal(valID: string) {
     const resp = await this.fetch(`${this.endpoint}/v1/vals/${valID}`, {
       method: "DELETE",
