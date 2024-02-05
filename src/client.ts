@@ -399,9 +399,6 @@ export class ValtownClient {
   }
 
   async resolveUser(username: string) {
-    if (username.startsWith("@")) {
-      username = username.slice(1);
-    }
     const resp = await this.fetch(`${this.endpoint}/v1/alias/${username}`);
     if (!resp.ok) {
       throw new Error("Failed to resolve val");
@@ -411,9 +408,6 @@ export class ValtownClient {
   }
 
   async resolveVal(username: string, valname: string) {
-    if (username.startsWith("@")) {
-      username = username.slice(1);
-    }
     const resp = await this.fetch(
       `${this.endpoint}/v1/alias/${username}/${valname}`,
     );

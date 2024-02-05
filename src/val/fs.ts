@@ -143,7 +143,7 @@ export function registerValFileSystemProvider(
       let readmeUrl: string;
       if ("val" in arg) {
         const { author, name } = arg.val;
-        readmeUrl = `vt+val:/${author.username.slice(1)}/${name}.md`;
+        readmeUrl = `vt+val:/${author.username}/${name}.md`;
       } else {
         const [author, filename] = arg.path.slice(1).split("/");
         const name = filename.split(".")[0];
@@ -160,7 +160,7 @@ export function registerValFileSystemProvider(
       let readmeUrl: string;
       if ("val" in arg) {
         const { author, name } = arg.val;
-        readmeUrl = `vt+val:/${author.username.slice(1)}/${name}.tsx`;
+        readmeUrl = `vt+val:/${author.username}/${name}.tsx`;
       } else {
         const [author, filename] = arg.path.slice(1).split("/");
         const name = filename.split(".")[0];

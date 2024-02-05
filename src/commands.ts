@@ -37,7 +37,7 @@ export function registerCommands(
       vscode.commands.executeCommand(
         "vscode.open",
         vscode.Uri.parse(
-          `vt+val:/${val.author.username.slice(1)}/${val.name}.tsx`,
+          `vt+val:/${val.author.username}/${val.name}.tsx`,
         ),
       );
 
@@ -78,7 +78,7 @@ export function registerCommands(
         vscode.commands.executeCommand(
           "vscode.open",
           vscode.Uri.parse(
-            `vt+val:/${val.author.username.slice(1)}/${val.name}.tsx`,
+            `vt+val:/${val.author.username}/${val.name}.tsx`,
           ),
         );
         vscode.commands.executeCommand("valtown.refresh");
@@ -100,10 +100,10 @@ export function registerCommands(
       }
 
       const oldURI = vscode.Uri.parse(
-        `vt+val:/${val.author.username.slice(1)}/${val.name}.tsx`,
+        `vt+val:/${val.author.username}/${val.name}.tsx`,
       );
       const newURI = vscode.Uri.parse(
-        `vt+val:/${val.author.username.slice(1)}/${name}.tsx`,
+        `vt+val:/${val.author.username}/${name}.tsx`,
       );
 
       vscode.workspace.fs.rename(oldURI, newURI, { overwrite: false });
@@ -123,7 +123,7 @@ export function registerCommands(
     vscode.commands.registerCommand("valtown.copyModuleURL", async (arg) => {
       const { name, author } = arg.val;
       vscode.env.clipboard.writeText(
-        `https://esm.town/v/${author.username.slice(1)}/${name}`,
+        `https://esm.town/v/${author.username}/${name}`,
       );
       vscode.window.showInformationMessage(`Module URL copied to clipboard`);
     }),
@@ -135,7 +135,7 @@ export function registerCommands(
       const { author, name } = arg.val as BaseVal;
 
       vscode.workspace.fs.delete(
-        vscode.Uri.parse(`vt+val:/${author.username.slice(1)}/${name}.tsx`),
+        vscode.Uri.parse(`vt+val:/${author.username}/${name}.tsx`),
       );
 
       await vscode.commands.executeCommand("valtown.refresh");
@@ -143,7 +143,7 @@ export function registerCommands(
     vscode.commands.registerCommand("valtown.copyValUrl", async (arg) => {
       const { author, name } = arg.val;
       vscode.env.clipboard.writeText(
-        `https://val.town/v/${author.username.slice(1)}/${name}`,
+        `https://val.town/v/${author.username}/${name}`,
       );
       vscode.window.showInformationMessage(`Val link copied to clipboard`);
     }),
@@ -151,7 +151,7 @@ export function registerCommands(
       let valUrl: string;
       if ("val" in arg) {
         const { author, name } = arg.val;
-        valUrl = `https://val.town/v/${author.username.slice(1)}/${name}`;
+        valUrl = `https://val.town/v/${author.username}/${name}`;
       } else {
         const [author, filename] = arg.path.slice(1).split("/");
         valUrl = `https://val.town/v/${author}/${filename.split(".")[0]}`;
@@ -163,16 +163,14 @@ export function registerCommands(
       const { author, name } = arg.val;
       // prettier-ignore
       vscode.env.clipboard.writeText(
-        `<script type="module" src="https://val.town/v/${
-          author.username.slice(1)
-        }/${name}"></script>`,
+        `<script type="module" src="https://val.town/v/${author.username}/${name}"></script>`,
       );
       vscode.window.showInformationMessage(`Script tag copied to clipboard`);
     }),
     vscode.commands.registerCommand("valtown.copyEmailAddress", async (arg) => {
       const { author, name } = arg.val;
       vscode.env.clipboard.writeText(
-        `${author.username.slice(1)}.${name}@valtown.email`,
+        `${author.username}.${name}@valtown.email`,
       );
       vscode.window.showInformationMessage(`Email Address copied to clipboard`);
     }),
@@ -189,14 +187,14 @@ export function registerCommands(
     vscode.commands.registerCommand("valtown.copyEmbedUrl", async (arg) => {
       const { author, name } = arg.val;
       vscode.env.clipboard.writeText(
-        `https://val.town/embed/${author.username.slice(1)}.${name}`,
+        `https://val.town/embed/${author.username}.${name}`,
       );
       vscode.window.showInformationMessage(`Embed URL to clipboard`);
     }),
     vscode.commands.registerCommand("valtown.copyHttpEndpoint", async (arg) => {
       const { author, name } = arg.val;
       vscode.env.clipboard.writeText(
-        `https://${author.username.slice(1)}-${name}.web.val.run`,
+        `https://${author.username}-${name}.web.val.run`,
       );
       vscode.window.showInformationMessage(
         `Val HTTP endpoint copied to clipboard`,
@@ -206,7 +204,7 @@ export function registerCommands(
       const { author, name } = arg.val;
       vscode.env.openExternal(
         vscode.Uri.parse(
-          `https://${author.username.slice(1)}-${name}.web.val.run`,
+          `https://${author.username}-${name}.web.val.run`,
         ),
       );
     }),
@@ -242,9 +240,7 @@ export function registerCommands(
         let httpEndpoint: string;
         if ("val" in arg) {
           const { author, name } = arg.val;
-          httpEndpoint = `https://${
-            author.username.slice(1)
-          }-${name}.web.val.run`;
+          httpEndpoint = `https://${author.username}-${name}.web.val.run`;
         } else {
           const [author, filename] = arg.path.slice(1).split("/");
           httpEndpoint = `https://${author}-${
@@ -264,9 +260,7 @@ export function registerCommands(
       let httpEndpoint: string;
       if ("val" in arg) {
         const { author, name } = arg.val;
-        httpEndpoint = `https://${
-          author.username.slice(1)
-        }-${name}.web.val.run`;
+        httpEndpoint = `https://${author.username}-${name}.web.val.run`;
       } else {
         const [author, filename] = arg.path.slice(1).split("/");
         httpEndpoint = `https://${author}-${

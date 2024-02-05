@@ -35,7 +35,7 @@ function valToTreeItem(
   val: BaseVal,
   collapsibleState: vscode.TreeItemCollapsibleState,
 ): ValTreeItem {
-  const resourceUri = `vt+val:/${val.author.username.slice(1)}/${val.name}.tsx`;
+  const resourceUri = `vt+val:/${val.author.username}/${val.name}.tsx`;
 
   return {
     contextValue: "val",
