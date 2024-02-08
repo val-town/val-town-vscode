@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { BaseVal, FullVal, ValtownClient } from "../client";
+import { BaseVal, ValtownClient } from "../client";
 import { Renderer } from "../template";
 
 type ValTreeItem = vscode.TreeItem & { val?: BaseVal };
