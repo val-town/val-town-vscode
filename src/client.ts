@@ -89,16 +89,17 @@ export class ValtownClient {
     return !!this.token;
   }
 
-  async paginate(url: string) {
-    let u = new URL(url);
-    u.searchParams.set("limit", "100");
-    url = u.toString();
+  async paginate(url: string | URL) {
+    if (typeof url === "string") {
+      url = new URL(url);
+    }
+    url.searchParams.set("limit", "100");
 
     const data = [];
     while (true) {
       const resp = await this.fetch(url);
       if (!resp.ok) {
-        throw new Error("Failed to get my vals");
+        throw new Error(await resp.text());
       }
       const body = (await resp.json()) as Paginated<BaseVal>;
       data.push(...body.data);
@@ -107,13 +108,16 @@ export class ValtownClient {
         break;
       }
 
-      url = body.links?.next;
+      url = new URL(body.links?.next);
+      if (url.protocol === "http:") {
+        url.protocol = "https:";
+      }
     }
 
     return data;
   }
 
-  async fetch(url: string, init?: RequestInit) {
+  async fetch(url: string | URL, init?: RequestInit) {
     if (!this.token) {
       throw new Error("No token");
     }
@@ -135,8 +139,8 @@ export class ValtownClient {
   async user(): Promise<User> {
     if (!this._user) {
       const resp = await this.fetch(`${this.endpoint}/v1/me`);
-      if (resp.status !== 200) {
-        throw new Error("Failed to get user ID");
+      if (!resp.ok) {
+        throw new Error(await resp.text());
       }
 
       const user = await resp.json();
@@ -165,7 +169,7 @@ export class ValtownClient {
       }),
     });
     if (!resp.ok) {
-      throw new Error("Failed to create val");
+      throw new Error(await resp.text());
     }
 
     return resp.json() as Promise<BaseVal>;
@@ -178,7 +182,7 @@ export class ValtownClient {
     while (true) {
       const resp = await this.fetch(endpoint);
       if (!resp.ok) {
-        throw new Error("Failed to get liked vals");
+        throw new Error(await resp.text());
       }
 
       const body = (await resp.json()) as Paginated<BaseVal>;
@@ -201,7 +205,7 @@ export class ValtownClient {
     while (true) {
       const resp = await this.fetch(endpoint);
       if (!resp.ok) {
-        throw new Error("Failed to get my vals");
+        throw new Error(await resp.text());
       }
       const body = (await resp.json()) as Paginated<BaseVal>;
       vals.push(...body.data);
@@ -223,7 +227,7 @@ export class ValtownClient {
         : `${this.endpoint}/v1/blob`,
     );
     if (!resp.ok) {
-      throw new Error("Failed to list blobs");
+      throw new Error(await resp.text());
     }
 
     return resp.json() as Promise<Blob[]>;
@@ -235,7 +239,7 @@ export class ValtownClient {
     );
 
     if (!resp.ok) {
-      throw new Error("Failed to get blob");
+      throw new Error(await resp.text());
     }
 
     return new Uint8Array(await resp.arrayBuffer());
@@ -251,7 +255,7 @@ export class ValtownClient {
     );
 
     if (!resp.ok) {
-      throw new Error("Failed to write blob");
+      throw new Error(await resp.text());
     }
   }
 
@@ -264,7 +268,7 @@ export class ValtownClient {
     );
 
     if (!resp.ok) {
-      throw new Error("Failed to delete blob");
+      throw new Error(await resp.text());
     }
   }
 
@@ -286,7 +290,7 @@ export class ValtownClient {
     while (true) {
       const resp = await this.fetch(endpoint);
       if (!resp.ok) {
-        throw new Error("Failed to get versions");
+        throw new Error(await resp.text());
       }
 
       const body = (await resp.json()) as Paginated<Version>;
@@ -309,7 +313,7 @@ export class ValtownClient {
     const resp = await this.fetch(endpoint);
 
     if (!resp.ok) {
-      throw new Error("Failed to get val");
+      throw new Error(await resp.text());
     }
 
     return resp.json() as Promise<FullVal>;
@@ -327,7 +331,7 @@ export class ValtownClient {
     });
 
     if (!resp.ok) {
-      throw new Error("Failed to rename val");
+      throw new Error(await resp.text());
     }
   }
 
@@ -343,7 +347,7 @@ export class ValtownClient {
     });
 
     if (!resp.ok) {
-      throw new Error("Failed to set privacy");
+      throw new Error(await resp.text());
     }
   }
 
@@ -362,7 +366,7 @@ export class ValtownClient {
     );
 
     if (!resp.ok) {
-      throw new Error("Failed to write val");
+      throw new Error(await resp.text());
     }
   }
 
@@ -378,7 +382,7 @@ export class ValtownClient {
     });
 
     if (!resp.ok) {
-      throw new Error("Failed to write val");
+      throw new Error(await resp.text());
     }
   }
 
@@ -388,7 +392,7 @@ export class ValtownClient {
     });
 
     if (!resp.ok) {
-      throw new Error("Failed to delete val");
+      throw new Error(await resp.text());
     }
   }
 
@@ -405,7 +409,7 @@ export class ValtownClient {
 
     const resp = await this.fetch(`${this.endpoint}/v1/alias/${username}`);
     if (!resp.ok) {
-      throw new Error("Failed to resolve val");
+      throw new Error(await resp.text());
     }
 
     return resp.json() as Promise<User>;
@@ -421,7 +425,7 @@ export class ValtownClient {
     );
 
     if (!resp.ok) {
-      throw new Error(`Failed to resolve val: @${username}/${valname}`);
+      throw new Error(await resp.text());
     }
 
     return resp.json() as Promise<FullVal>;
@@ -451,7 +455,7 @@ export class ValtownClient {
     });
 
     if (!res.ok) {
-      throw new Error("Failed to execute statement");
+      throw new Error(await res.text());
     }
 
     return res.json();
