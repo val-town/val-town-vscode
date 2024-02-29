@@ -26,9 +26,9 @@ export type InValue = null | string | number | boolean;
 export type InArgs = Array<InValue> | Record<string, InValue>;
 export type InStatement =
   | {
-    sql: string;
-    args: InArgs;
-  }
+      sql: string;
+      args: InArgs;
+    }
   | string;
 
 export type Blob = {
@@ -151,10 +151,7 @@ export class ValtownClient {
     return this._user;
   }
 
-  async createVal(options?: {
-    template?: ValTemplate;
-    privacy?: ValPrivacy;
-  }) {
+  async createVal(options?: { template?: ValTemplate; privacy?: ValPrivacy }) {
     // empty vals are not allowed, so we add a space
     let code = options?.template ? templates[options?.template] : "\n";
 
@@ -224,7 +221,7 @@ export class ValtownClient {
     const resp = await this.fetch(
       prefix
         ? `${this.endpoint}/v1/blob?prefix=${encodeURIComponent(prefix)}`
-        : `${this.endpoint}/v1/blob`,
+        : `${this.endpoint}/v1/blob`
     );
     if (!resp.ok) {
       throw new Error(await resp.text());
@@ -235,7 +232,7 @@ export class ValtownClient {
 
   async readBlob(key: string) {
     const resp = await this.fetch(
-      `${this.endpoint}/v1/blob/${encodeURIComponent(key)}`,
+      `${this.endpoint}/v1/blob/${encodeURIComponent(key)}`
     );
 
     if (!resp.ok) {
@@ -251,7 +248,7 @@ export class ValtownClient {
       {
         method: "POST",
         body: data,
-      },
+      }
     );
 
     if (!resp.ok) {
@@ -264,7 +261,7 @@ export class ValtownClient {
       `${this.endpoint}/v1/blob/${encodeURIComponent(key)}`,
       {
         method: "DELETE",
-      },
+      }
     );
 
     if (!resp.ok) {
@@ -274,7 +271,7 @@ export class ValtownClient {
 
   async copyBlob(oldKey: string, newKey: string) {
     const resp = await this.fetch(
-      `https://api.val.town/v1/blob/${encodeURIComponent(oldKey)}`,
+      `https://api.val.town/v1/blob/${encodeURIComponent(oldKey)}`
     );
     await this.writeBlob(newKey, new Uint8Array(await resp.arrayBuffer()));
   }
@@ -362,7 +359,7 @@ export class ValtownClient {
         body: JSON.stringify({
           code,
         }),
-      },
+      }
     );
 
     if (!resp.ok) {
@@ -398,7 +395,7 @@ export class ValtownClient {
 
   async searchVals(query: string) {
     return this.paginate(
-      `${this.endpoint}/v1/search/vals?query=${encodeURIComponent(query)}`,
+      `${this.endpoint}/v1/search/vals?query=${encodeURIComponent(query)}`
     );
   }
 
@@ -421,7 +418,7 @@ export class ValtownClient {
     }
 
     const resp = await this.fetch(
-      `${this.endpoint}/v1/alias/${username}/${valname}`,
+      `${this.endpoint}/v1/alias/${username}/${valname}`
     );
 
     if (!resp.ok) {
@@ -440,12 +437,18 @@ export class ValtownClient {
       return [];
     }
 
-    return await Promise.all(
-      matches.map(async (match) => {
+    const dependencies = await Promise.all(
+      matches.flatMap(async (match) => {
         const [, author, name] = match;
-        return this.resolveVal(author, name);
-      }),
+        try {
+          return await this.resolveVal(author, name);
+        } catch (e) {
+          return null;
+        }
+      })
     );
+
+    return dependencies.filter((val): val is FullVal => !!val);
   }
 
   async execute(statement: InStatement) {
