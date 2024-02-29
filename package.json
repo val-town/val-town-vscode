@@ -5,7 +5,7 @@
 	"version": "0.8.7",
 	"publisher": "pomdtr",
 	"private": true,
-	"icon": "./assets/icon.png",
+	"icon": "assets/icon.png",
 	"license": "MIT",
 	"homepage": "https://val.town",
 	"repository": {
