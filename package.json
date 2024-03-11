@@ -279,12 +279,6 @@
 				"icon": "$(play)"
 			},
 			{
-				"command": "valtown.sqlite.previewTable",
-				"category": "Val Town",
-				"title": "Preview Table",
-				"icon": "$(open-preview)"
-			},
-			{
 				"command": "valtown.sqlite.dropTable",
 				"category": "Val Town",
 				"title": "Drop Table"
@@ -474,10 +468,6 @@
 					"when": "false"
 				},
 				{
-					"command": "valtown.sqlite.previewTable",
-					"when": "false"
-				},
-				{
 					"command": "valtown.sqlite.dropTable",
 					"when": "false"
 				},
@@ -611,11 +601,6 @@
 					"when": "viewItem == blob"
 				},
 				{
-					"command": "valtown.sqlite.previewTable",
-					"group": "navigation@1",
-					"when": "view == valtown.sqlite && viewItem == table"
-				},
-				{
 					"command": "valtown.sqlite.dropTable",
 					"group": "navigation@2",
 					"when": "view == valtown.sqlite && viewItem == table"
@@ -739,8 +724,5 @@
 		"typescript": "^5.2.2",
 		"webpack": "^5.89.0",
 		"webpack-cli": "^5.1.4"
-	},
-	"dependencies": {
-		"@json2csv/plainjs": "^7.0.4"
 	}
 }

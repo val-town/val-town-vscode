@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 import { ValtownClient } from "../client";
-import { Parser } from "@json2csv/plainjs";
 
 export function register(
   context: vscode.ExtensionContext,
@@ -16,19 +15,8 @@ export function register(
         }
 
         try {
-          const { columns, rows }: { columns: string[]; rows: string[][] } =
-            await client.execute(query);
-          const records = rows.map((row) => {
-            const record: Record<string, string> = {};
-            for (let i = 0; i < columns.length; i++) {
-              record[columns[i]] = row[i];
-            }
-            return record;
-          });
-
-          return new Parser({
-            fields: columns,
-          }).parse(records);
+          const res = await client.execute(query);
+          return JSON.stringify(res, null, 2);
         } catch (e: any) {
           return e.message;
         }

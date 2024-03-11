@@ -110,24 +110,11 @@ export async function registerSqliteTreeView(
 
       const query = await editor.document.getText();
       const uri = vscode.Uri.parse(
-        `vt+sqlite:/results.csv?query=${encodeURIComponent(query)}`
+        `vt+sqlite:/results.json?query=${encodeURIComponent(query)}`
       );
       const doc = await vscode.workspace.openTextDocument(uri);
       await vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside);
     }),
-    vscode.commands.registerCommand(
-      "valtown.sqlite.previewTable",
-      async (node) => {
-        const table = node.label;
-        const query = `SELECT * FROM ${table} LIMIT 1000;`;
-        const uri = vscode.Uri.parse(
-          `vt+sqlite:/${table}.csv?query=${encodeURIComponent(query)}`
-        );
-
-        const doc = await vscode.workspace.openTextDocument(uri);
-        await vscode.window.showTextDocument(doc, vscode.ViewColumn.Active);
-      }
-    ),
     vscode.commands.registerCommand(
       "valtown.sqlite.dropTable",
       async (node) => {
