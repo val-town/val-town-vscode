@@ -102,10 +102,13 @@ export async function registerSqliteTreeView(
       });
       await vscode.window.showTextDocument(doc);
     }),
-    vscode.commands.registerCommand("valtown.sqlite.runQuery", async (arg) => {
-      const document = await vscode.workspace.openTextDocument(arg);
-      const query = document.getText();
+    vscode.commands.registerCommand("valtown.sqlite.runQuery", async () => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        return;
+      }
 
+      const query = await editor.document.getText();
       const uri = vscode.Uri.parse(
         `vt+sqlite:/results.csv?query=${encodeURIComponent(query)}`
       );

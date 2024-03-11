@@ -515,6 +515,11 @@
 					"command": "valtown.openValUrl",
 					"group": "navigation@1",
 					"when": "resourceScheme == 'vt+val'"
+				},
+				{
+					"command": "valtown.sqlite.runQuery",
+					"group": "navigation@1",
+					"when": "editorLangId == 'sql'"
 				}
 			],
 			"view/title": [
