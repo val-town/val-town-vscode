@@ -227,6 +227,11 @@
 				"title": "Delete Blob"
 			},
 			{
+				"command": "valtown.blob.rename",
+				"category": "Val Town",
+				"title": "Rename Blob"
+			},
+			{
 				"command": "valtown.blob.create",
 				"category": "Val Town",
 				"title": "Create Blob",
@@ -448,6 +453,10 @@
 					"when": "false"
 				},
 				{
+					"command": "valtown.blob.rename",
+					"when": "false"
+				},
+				{
 					"command": "valtown.blob.download",
 					"when": "false"
 				},
@@ -596,8 +605,13 @@
 					"when": "viewItem == blob"
 				},
 				{
-					"command": "valtown.blob.delete",
+					"command": "valtown.blob.rename",
 					"group": "navigation@3",
+					"when": "viewItem == blob"
+				},
+				{
+					"command": "valtown.blob.delete",
+					"group": "navigation@4",
 					"when": "viewItem == blob"
 				},
 				{

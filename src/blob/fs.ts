@@ -24,7 +24,7 @@ class BlobFileSystemProvider implements vscode.FileSystemProvider {
   async rename(
     source: vscode.Uri,
     destination: vscode.Uri,
-    options: { readonly overwrite: boolean },
+    options: { readonly overwrite: boolean }
   ) {
     const oldKey = source.path.slice(1);
     const newKey = destination.path.slice(1);
@@ -39,7 +39,7 @@ class BlobFileSystemProvider implements vscode.FileSystemProvider {
   async copy(
     source: vscode.Uri,
     destination: vscode.Uri,
-    options: { readonly overwrite: boolean },
+    options: { readonly overwrite: boolean }
   ) {
     const oldKey = source.path.slice(1);
     const newKey = destination.path.slice(1);
@@ -68,7 +68,7 @@ class BlobFileSystemProvider implements vscode.FileSystemProvider {
   async writeFile(
     uri: vscode.Uri,
     content: Uint8Array,
-    options: { readonly create: boolean; readonly overwrite: boolean },
+    options: { readonly create: boolean; readonly overwrite: boolean }
   ) {
     await this.client.writeBlob(uri.path.slice(1), content);
     await vscode.commands.executeCommand("valtown.refresh");
@@ -79,7 +79,7 @@ class BlobFileSystemProvider implements vscode.FileSystemProvider {
     options: {
       readonly recursive: boolean;
       readonly excludes: readonly string[];
-    },
+    }
   ): vscode.Disposable {
     // ignore, fires for all changes...
     return new vscode.Disposable(() => {});
@@ -90,14 +90,14 @@ class BlobFileSystemProvider implements vscode.FileSystemProvider {
   async readDirectory(uri: vscode.Uri) {
     const blobs = await this.client.listBlobs();
     return blobs.map(
-      (blob) => [blob.key, vscode.FileType.File] as [string, vscode.FileType],
+      (blob) => [blob.key, vscode.FileType.File] as [string, vscode.FileType]
     );
   }
 }
 
 export function registerBlobFileSystemProvider(
   context: vscode.ExtensionContext,
-  client: ValtownClient,
+  client: ValtownClient
 ) {
   const fs = new BlobFileSystemProvider(client);
   context.subscriptions.push(
@@ -173,8 +173,10 @@ export function registerBlobFileSystemProvider(
     vscode.commands.registerCommand("valtown.blob.delete", async (arg) => {
       const key = arg.id;
       await vscode.workspace.fs.delete(
-        vscode.Uri.parse(`vt+blob:/${encodeURIComponent(key)}`),
+        vscode.Uri.parse(`vt+blob:/${encodeURIComponent(key)}`)
       );
+
+      await vscode.commands.executeCommand("valtown.blob.refresh");
     }),
     vscode.commands.registerCommand("valtown.blob.rename", async (arg) => {
       const key = arg.id;
@@ -190,10 +192,12 @@ export function registerBlobFileSystemProvider(
       }
 
       await vscode.workspace.fs.rename(oldUri, newUri, { overwrite: true });
+
+      await vscode.commands.executeCommand("valtown.blob.refresh");
     }),
     vscode.commands.registerCommand("valtown.blob.copyKey", async (arg) => {
       const key = arg.id;
       await vscode.env.clipboard.writeText(key);
-    }),
+    })
   );
 }
