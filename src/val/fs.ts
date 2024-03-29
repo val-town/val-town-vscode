@@ -41,7 +41,7 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
   async rename(
     oldUri: vscode.Uri,
     newUri: vscode.Uri,
-    options: { readonly overwrite: boolean },
+    options: { readonly overwrite: boolean }
   ) {
     const oldVal = await this.extractVal(oldUri);
     const name = newUri.path.split("/").pop()?.replace(".tsx", "");
@@ -74,11 +74,12 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
 
       return {
         type: vscode.FileType.File,
-        permissions: val.author.id !== user.id
-          ? vscode.FilePermission.Readonly
-          : undefined,
+        permissions:
+          val.author.id !== user.id
+            ? vscode.FilePermission.Readonly
+            : undefined,
         ctime: new Date(val.createdAt).getTime(),
-        mtime: new Date(val.runStartAt).getTime(),
+        mtime: new Date(val.createdAt).getTime(),
         size: new TextEncoder().encode(val.code || "").length,
       };
     } catch (_) {
@@ -89,7 +90,7 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
   async writeFile(
     uri: vscode.Uri,
     content: Uint8Array,
-    options: { readonly create: boolean; readonly overwrite: boolean },
+    options: { readonly create: boolean; readonly overwrite: boolean }
   ) {
     const val = await this.extractVal(uri);
     if (uri.path.endsWith(".md")) {
@@ -105,7 +106,7 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
     options: {
       readonly recursive: boolean;
       readonly excludes: readonly string[];
-    },
+    }
   ): vscode.Disposable {
     return new vscode.Disposable(() => {});
   }
@@ -126,14 +127,14 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
     const vals = await this.client.paginate(`/users/${user.id}/vals`);
     return vals.map(
       (val) =>
-        [`${val.name}.tsx`, vscode.FileType.File] as [string, vscode.FileType],
+        [`${val.name}.tsx`, vscode.FileType.File] as [string, vscode.FileType]
     );
   }
 }
 
 export function registerValFileSystemProvider(
   context: vscode.ExtensionContext,
-  client: ValtownClient,
+  client: ValtownClient
 ) {
   const fs = new ValFileSystemProvider(client);
 
@@ -151,9 +152,7 @@ export function registerValFileSystemProvider(
       }
       vscode.commands.executeCommand(
         "vscode.open",
-        vscode.Uri.parse(
-          readmeUrl,
-        ),
+        vscode.Uri.parse(readmeUrl)
       );
     }),
     vscode.commands.registerCommand("valtown.val.open", async (arg) => {
@@ -168,10 +167,8 @@ export function registerValFileSystemProvider(
       }
       vscode.commands.executeCommand(
         "vscode.open",
-        vscode.Uri.parse(
-          readmeUrl,
-        ),
+        vscode.Uri.parse(readmeUrl)
       );
-    }),
+    })
   );
 }

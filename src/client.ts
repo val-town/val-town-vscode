@@ -6,8 +6,6 @@ export type BaseVal = {
   privacy: ValPrivacy;
   version: number;
   createdAt: string;
-  runStartAt: string;
-  runEndAt: string;
   author: {
     id: string;
     username: string;
@@ -54,8 +52,7 @@ type Paginated<T> = {
 export type Version = {
   valID: string;
   version: number;
-  runStartAt: string;
-  runEndAt: string;
+  createdAt: string;
 };
 
 const templates = {
@@ -75,7 +72,10 @@ export type ValTemplate = keyof typeof templates;
 export class ValtownClient {
   private _user: User | undefined;
 
-  constructor(public endpoint: string, private token?: string) {}
+  constructor(
+    public endpoint: string,
+    private token?: string
+  ) {}
 
   setToken(token?: string) {
     this.token = token;
