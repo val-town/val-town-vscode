@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { clearToken, saveToken } from "./secrets";
 import { BaseVal, ValTemplate, ValtownClient } from "./client";
+import importVal from "./importVal";
 
 export function registerCommands(
   context: vscode.ExtensionContext,
@@ -272,5 +273,6 @@ export function registerCommands(
         httpEndpoint,
       );
     }),
+    vscode.commands.registerCommand("valtown.importVal", importVal)
   );
 }
