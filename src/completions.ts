@@ -1,12 +1,16 @@
 import * as vscode from "vscode";
-import * as ts from "typescript";
 import { ValtownClient } from "./client";
+
+enum ValImportKind {
+  Default,
+  Named,
+  SideEffect,
+}
 
 export function registerCompletions(
   context: vscode.ExtensionContext,
   client: ValtownClient
 ) {
-  // Register the autocomplete provider
   context.subscriptions.push(
     vscode.languages.registerCompletionItemProvider(
       { scheme: "vt+val", language: "typescriptreact" },
@@ -15,16 +19,27 @@ export function registerCompletions(
           document: vscode.TextDocument,
           position: vscode.Position
         ) {
-          const line = document.lineAt(position);
-          const text = line.text.slice(0, position.character);
-          const match = /@([a-zA-Z0-9]*)(?:\/([a-zA-Z0-9_]*))?$/.exec(text);
+          // see if we can match backwards from the cursor to find @[<handle>[/<val>]]
+          const atImportMatch = /@([a-zA-Z0-9]*)(?:\/([a-zA-Z0-9_]*))?$/.exec(
+            document.getText(
+              new vscode.Range(
+                position.line,
+                0,
+                position.line,
+                position.character
+              )
+            )
+          );
 
-          if (!match) {
+          // if we can't match, don't provide any completions
+          if (!atImportMatch) {
             return [];
           }
 
-          const [full, typedHandle, name] = match;
+          const [atImport, typedHandle, name] = atImportMatch;
+          const startOfAtImport = position.translate(0, -atImport.length);
 
+          // get completions from the API
           const data = await client.autocomplete(typedHandle, name);
 
           return data.map(
@@ -37,27 +52,33 @@ export function registerCompletions(
               version,
               exportedName,
             }) => {
+              let importKind: ValImportKind = ValImportKind.SideEffect;
+              if (exportedName === "default") {
+                importKind = ValImportKind.Default;
+              } else if (exportedName) {
+                importKind = ValImportKind.Named;
+              }
+
               const snippetCompletion = new vscode.CompletionItem({
-                label: `@${typedHandle}/${name}`,
-                detail:
-                  exportedName !== "default"
-                    ? ` ${exportedName ?? "(no export)"}`
-                    : undefined,
+                label: `@${typedHandle === "me" ? "me" : handle}/${name}`,
+                detail: ` ${exportedName ?? "(no export)"}`,
                 description: `v${version}`,
               });
               snippetCompletion.documentation = new vscode.MarkdownString(
                 "```tsx\n" + code + "\n```"
               );
-              snippetCompletion.documentation.baseUri = vscode.Uri.parse(
-                "http://example.com/a/b/c/"
-              );
-              const insertText =
-                exportedName === "default" ? name : exportedName ?? "";
+              let insertText = "";
+              if (importKind === ValImportKind.Default) {
+                insertText = name;
+              } else if (importKind === ValImportKind.Named) {
+                insertText = exportedName;
+              }
               snippetCompletion.insertText = insertText;
               snippetCompletion.range = new vscode.Range(
-                position.translate(0, -full.length),
+                startOfAtImport,
                 position
               );
+              // might not be a function, but we can't tell
               snippetCompletion.kind = vscode.CompletionItemKind.Function;
               snippetCompletion.command = {
                 title: "Import Val",
@@ -67,9 +88,10 @@ export function registerCompletions(
                   name,
                   exportedName,
                   version,
+                  // this is the range of the replaced text
                   new vscode.Range(
-                    position.translate(0, -full.length),
-                    position.translate(0, -full.length + insertText.length)
+                    startOfAtImport,
+                    startOfAtImport.translate(insertText.length)
                   ),
                 ],
               };
@@ -78,8 +100,7 @@ export function registerCompletions(
           );
         },
       }
-      // "@",
-      // "/"
+      // "@", "/"
     )
   );
 }
