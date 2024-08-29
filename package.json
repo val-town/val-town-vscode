@@ -358,6 +358,11 @@
 								"url": "https://api.val.town/v1/users/${user:me}/vals"
 							}
 						]
+					},
+					"valtown.autoImport.staticVersion": {
+						"type": "boolean",
+						"markdownDescription": "Use a static version when automatically importing vals, like this.\n\n| Option | Example |\n|--------|---------|\n| `false` | `import \"https://esm.town/v/steveKrouse/helloWorld\"` |\n| `true`  | `import \"https://esm.town/v/steveKrouse/helloWorld?v=14\"` |\n\nThis is useful for ensuring that your code doesn't break when the val is updated.",
+						"default": false
 					}
 				}
 			}

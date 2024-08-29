@@ -15,6 +15,10 @@ export default async (
   const document = editor.document;
 
   const importURL = `https://esm.town/v/${handle}/${name}`; // TODO: enable versioning as option?
+
+  const config = vscode.workspace.getConfiguration("valtown.autoImport");
+  const staticVersion = config.get<boolean>("staticVersion", false);
+
   const text = document.getText();
   const sourceFile = ts.createSourceFile(
     document.fileName,
@@ -51,11 +55,14 @@ export default async (
       return;
     }
 
-    const moduleSpecifier = node.moduleSpecifier
+    const existingImportURL = node.moduleSpecifier
       .getText(sourceFile)
       .replace(/['"]/g, "");
 
-    if (moduleSpecifier !== importURL) {
+    // ignore version when comparing import URL
+    // TODO: but what if only a later version of the val has the export we need?
+    // do we bump the version?
+    if (existingImportURL.replace(/\?v=\d+$/, "") !== importURL) {
       lastStaticImportEnd = node.getEnd();
       return;
     }
@@ -93,7 +100,7 @@ export default async (
       if (namedImports) {
         statement += `, ${namedImports.getText()}`;
       }
-      statement += ` from '${importURL}';`;
+      statement += ` from '${existingImportURL}';`;
       result = {
         statement,
         range: toVSCodeRange(node),
@@ -112,7 +119,7 @@ export default async (
       statement +=
         namedImports.elements.map((e) => e.getText()).join(", ") + ", ";
     }
-    statement += `${exportedName} } from '${importURL}';`;
+    statement += `${exportedName} } from '${existingImportURL}';`;
 
     result = {
       statement,
@@ -139,7 +146,11 @@ export default async (
     } else if (exportedName !== null) {
       statement += `{ ${exportedName} } from `;
     }
-    statement += `'${importURL}';\n`;
+    statement += `'${importURL}`;
+    if (staticVersion) {
+      statement += `?v=${version}`;
+    }
+    statement += "';\n";
     result = {
       statement,
       range: new vscode.Range(nextLine, nextLine),
