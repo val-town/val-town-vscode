@@ -135,7 +135,8 @@ export class ValtownClient {
     const { hostname, pathname } = new URL(url);
     if (
       hostname !== "api.val.town" &&
-      !(hostname === "val.town" && pathname.startsWith("/api/"))
+      // completions are fetched from the frontend API
+      !(hostname === "www.val.town" && pathname.startsWith("/api/"))
     ) {
       return fetch(url, init);
     }
@@ -490,16 +491,13 @@ export class ValtownClient {
         },
       }),
     });
-    const url = new URL(
-      // TODO: temporary hack to avoid CORS
-      `http://localhost:8080/https://val.town/api/trpc/autocomplete`
-    );
+    const url = new URL("https://www.val.town/api/trpc/autocomplete");
     url.search = params.toString();
-    const res = await this.fetch(
-      url,
-      // TODO: also remove this line once CORS is fixed
-      { headers: { Authorization: `Bearer ${this.token}` } }
-    );
+    const res = await this.fetch(url, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     return ((await res.json()) as any)[0].result.data;
   }
 }
