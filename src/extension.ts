@@ -13,6 +13,7 @@ import { registerCommands } from "./commands";
 import { registerUriHandler } from "./uri";
 import * as sqliteDoc from "./sqlite/document";
 import * as definition from "./definition";
+import { registerCompletions } from "./completions";
 
 export async function activate(context: vscode.ExtensionContext) {
   // set output channel
@@ -78,6 +79,8 @@ export async function activate(context: vscode.ExtensionContext) {
   definition.register(client, context);
   outputChannel.appendLine("Registering commands");
   registerCommands(context, client);
+  outputChannel.appendLine("Registering completions");
+  registerCompletions(context, client);
   outputChannel.appendLine("ValTown extension activated");
 }
 

@@ -2,7 +2,7 @@
 	"name": "valtown",
 	"displayName": "Val Town",
 	"description": "VS Code integration for val.town",
-	"version": "0.8.10",
+	"version": "0.8.12",
 	"publisher": "pomdtr",
 	"private": true,
 	"icon": "assets/icon.png",
@@ -719,7 +719,15 @@
 				"id": "valtown.privacy",
 				"label": "Set Privacy"
 			}
-		]
+		],
+		"completionItemProvider": {
+			"selector": [
+				{
+					"language": "typescriptreact",
+					"scheme": "vt+val"
+				}
+			]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run package",
