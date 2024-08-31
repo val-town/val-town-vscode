@@ -1,25 +1,55 @@
 import * as vscode from "vscode";
 import * as ts from "typescript";
+import { CompletionVal } from "./client";
+
+const tsNodeToRange = (
+  node: ts.Node,
+  sourceFile: ts.SourceFile
+): vscode.Range => {
+  const positionOfNode = (startOrEnd: number): vscode.Position => {
+    const position = sourceFile.getLineAndCharacterOfPosition(startOrEnd);
+    return new vscode.Position(position.line, position.character);
+  };
+
+  return new vscode.Range(
+    positionOfNode(node.getStart()),
+    positionOfNode(node.getEnd())
+  );
+};
+
+enum UpgradeBehavior {
+  Prompt = "prompt",
+  Upgrade = "upgrade",
+  Nothing = "nothing",
+}
 
 export default async (
-  handle: string,
-  name: string,
-  exportedName: string,
-  version: string,
-  keywordRange: vscode.Range
+  completionVal: CompletionVal,
+  // the command writes the imported keyword to this range.
+  // relevant when importing { exportedName as keyword }
+  keywordRange?: vscode.Range,
+  forceUpgradeBehavior?: UpgradeBehavior
 ) => {
+  const { handle, name, exportedName, version } = completionVal;
+  const config = vscode.workspace.getConfiguration("valtown.autoImport");
+  const staticVersion = config.get<boolean>("staticVersion", false);
+  const showUpgradeNotifications = config.get<boolean>(
+    "showUpgradeNotifications",
+    true
+  );
+  const ugpradeBehavior =
+    forceUpgradeBehavior ??
+    config.get<UpgradeBehavior>("upgradeBehavior", UpgradeBehavior.Prompt);
+
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     return;
   }
   const document = editor.document;
-
-  const importURL = `https://esm.town/v/${handle}/${name}`; // TODO: enable versioning as option?
-
-  const config = vscode.workspace.getConfiguration("valtown.autoImport");
-  const staticVersion = config.get<boolean>("staticVersion", false);
-
   const text = document.getText();
+
+  const importURL = `https://esm.town/v/${handle}/${name}`;
+
   const sourceFile = ts.createSourceFile(
     document.fileName,
     text,
@@ -27,44 +57,111 @@ export default async (
     true
   );
 
+  // this represents the actions we want to execute
   let result: {
+    // the import statement to add
     statement: string;
+    // where to add the import statement
     range: vscode.Range;
+    // the imported keyword
     keyword: string;
   } | null = null;
-  let lastStaticImportEnd: number | null = null;
 
-  function toVSCodePosition(startOrEnd: number): vscode.Position {
-    const position = sourceFile.getLineAndCharacterOfPosition(startOrEnd);
-    return new vscode.Position(position.line, position.character);
-  }
-
-  function toVSCodeRange(node: ts.Node): vscode.Range {
-    const start = toVSCodePosition(node.getStart());
-    const end = toVSCodePosition(node.getEnd());
-
-    return new vscode.Range(start, end);
-  }
+  // if we aren't able to modify an existing import,
+  // we'll add the new import after the last static import we find
+  let lastStaticImport: ts.ImportDeclaration | null = null;
 
   function visit(node: ts.Node) {
+    // if we already found our import, we can stop checking
     if (result !== null) {
       return;
     }
 
+    // ignore non-import nodes
     if (!ts.isImportDeclaration(node)) {
       return;
     }
 
-    const existingImportURL = node.moduleSpecifier
-      .getText(sourceFile)
-      .replace(/['"]/g, "");
+    const existingImportURL = new URL(
+      node.moduleSpecifier.getText(sourceFile).replace(/['"]/g, "")
+    );
 
-    // ignore version when comparing import URL
-    // TODO: but what if only a later version of the val has the export we need?
-    // do we bump the version?
-    if (existingImportURL.replace(/\?v=\d+$/, "") !== importURL) {
-      lastStaticImportEnd = node.getEnd();
+    const existingVersion = existingImportURL.searchParams.get("v");
+    const existingImportURLWithoutVersion = new URL(
+      existingImportURL.toString()
+    );
+    existingImportURLWithoutVersion.searchParams.delete("v");
+
+    // see if importURLs match, ignoring version
+    if (existingImportURLWithoutVersion.toString() !== importURL) {
+      lastStaticImport = node;
       return;
+    }
+
+    const newImportURL = new URL(existingImportURLWithoutVersion.toString());
+
+    // upgrade url behavior
+    let message: string | null = null;
+    const actions: Record<string, () => void> = {};
+    let useDisableNotifications = false;
+    if (existingVersion === null) {
+      if (staticVersion) {
+        newImportURL.searchParams.set("v", version.toString());
+        message = `Froze existing import of ${handle}/${name} at v${version}`;
+        useDisableNotifications = true;
+      }
+    } else if (existingVersion !== version.toString()) {
+      if (ugpradeBehavior === UpgradeBehavior.Upgrade) {
+        newImportURL.searchParams.set("v", version.toString());
+        message = `Upgraded existing v${existingVersion} import of ${handle}/${name} to v${version}`;
+        useDisableNotifications = true;
+      } else if (ugpradeBehavior === UpgradeBehavior.Prompt) {
+        // keep existing version until user decides
+        newImportURL.searchParams.set("v", existingVersion);
+        message = `Upgrade to latest v${version} of ${handle}/${name}?`;
+        actions["Yes"] = () => {
+          // just call this command again with force-upgrade
+          vscode.commands.executeCommand(
+            "valtown.importVal",
+            completionVal,
+            undefined,
+            UpgradeBehavior.Upgrade
+          );
+        };
+        actions["No"] = () => {};
+        actions["Always"] = () => {
+          actions["Yes"]();
+          config.update("upgradeBehavior", UpgradeBehavior.Upgrade, true);
+        };
+        actions["Never"] = () => {
+          actions["No"]();
+          config.update("upgradeBehavior", UpgradeBehavior.Nothing, true);
+        };
+      }
+    }
+    actions["Settings"] = () => {
+      vscode.commands.executeCommand(
+        "workbench.action.openSettings",
+        "valtown.autoImport"
+      );
+    };
+    if (useDisableNotifications) {
+      actions["Disable Notifications"] = () => {
+        config.update("showUpgradeNotifications", false, true);
+      };
+    }
+
+    if (
+      message !== null &&
+      (ugpradeBehavior === UpgradeBehavior.Prompt || showUpgradeNotifications)
+    ) {
+      vscode.window
+        .showInformationMessage(message, ...Object.keys(actions))
+        .then((action) => {
+          if (action !== undefined) {
+            actions[action]();
+          }
+        });
     }
 
     const importClause = node.importClause;
@@ -84,8 +181,8 @@ export default async (
       matchingNamedImport
     ) {
       result = {
-        statement: node.getText(),
-        range: toVSCodeRange(node),
+        statement: `import ${node.importClause!.getText()} from '${newImportURL.toString()}';`,
+        range: tsNodeToRange(node, sourceFile),
         keyword:
           exportedName === "default"
             ? defaultImport!.getText()
@@ -100,10 +197,10 @@ export default async (
       if (namedImports) {
         statement += `, ${namedImports.getText()}`;
       }
-      statement += ` from '${existingImportURL}';`;
+      statement += ` from '${newImportURL}';`;
       result = {
         statement,
-        range: toVSCodeRange(node),
+        range: tsNodeToRange(node, sourceFile),
         keyword: name,
       };
       return;
@@ -119,27 +216,35 @@ export default async (
       statement +=
         namedImports.elements.map((e) => e.getText()).join(", ") + ", ";
     }
-    statement += `${exportedName} } from '${existingImportURL}';`;
+    statement += `${exportedName} } from '${newImportURL}';`;
 
     result = {
       statement,
-      range: toVSCodeRange(node),
+      range: tsNodeToRange(node, sourceFile),
       keyword: exportedName,
     };
   }
 
   ts.forEachChild(sourceFile, visit);
 
+  // ts doesn't realize that lastStaticImport may have been set in the loop
+  lastStaticImport = lastStaticImport as ts.ImportDeclaration | null;
+
+  // case 4: we need to add a whole new import
   if (result === null) {
+    // try to put the new import after the last static import,
+    // or at the top of the file if there are no static imports
     let nextLine;
-    if (lastStaticImportEnd !== null) {
+    if (lastStaticImport !== null) {
       nextLine = new vscode.Position(
-        sourceFile.getLineAndCharacterOfPosition(lastStaticImportEnd).line + 1,
+        sourceFile.getLineAndCharacterOfPosition(lastStaticImport.getEnd())
+          .line + 1,
         0
       );
     } else {
       nextLine = new vscode.Position(0, 0);
     }
+
     let statement = "import ";
     if (exportedName === "default") {
       statement += `${name} from `;
@@ -157,16 +262,17 @@ export default async (
       keyword: exportedName === "default" ? name : exportedName,
     };
   }
+
   editor.edit(
     (editBuilder) => {
       if (result === null) {
         return;
       }
       editBuilder.replace(result.range, result.statement);
-      editBuilder.replace(keywordRange, result.keyword);
+      if (keywordRange !== undefined) {
+        editBuilder.replace(keywordRange, result.keyword);
+      }
     },
     { undoStopBefore: false, undoStopAfter: true }
   );
-  // TODO: should we handle case that named export is name of default export?
-  // TODO: are we hammering the API? should we try to debounce or throttle?
 };
