@@ -55,6 +55,16 @@ export type Version = {
   createdAt: string;
 };
 
+export type CompletionVal = {
+  handle: string;
+  name: string;
+  author: string;
+  createdAt: string;
+  code: string;
+  version: number;
+  exportedName: string;
+};
+
 const templates = {
   http: `export default async function (req: Request): Promise<Response> {
   return Response.json({ ok: true })
@@ -122,8 +132,12 @@ export class ValtownClient {
       throw new Error("No token");
     }
 
-    const { hostname } = new URL(url);
-    if (hostname !== "api.val.town") {
+    const { hostname, pathname } = new URL(url);
+    if (
+      hostname !== "api.val.town" &&
+      // completions are fetched from the frontend API
+      !(hostname === "www.val.town" && pathname.startsWith("/api/"))
+    ) {
       return fetch(url, init);
     }
 
@@ -462,5 +476,28 @@ export class ValtownClient {
     }
 
     return res.json();
+  }
+
+  async autocomplete(
+    handle: string | undefined,
+    name: string | undefined
+  ): Promise<CompletionVal[]> {
+    const params = new URLSearchParams({
+      batch: "1",
+      input: JSON.stringify({
+        "0": {
+          handle: handle === "me" ? (await this.user()).username : handle ?? "",
+          name: name || null,
+        },
+      }),
+    });
+    const url = new URL("https://www.val.town/api/trpc/autocomplete");
+    url.search = params.toString();
+    const res = await this.fetch(url, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return ((await res.json()) as any)[0].result.data;
   }
 }

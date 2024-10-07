@@ -10,19 +10,23 @@ Use the `Val Town: Set Token` command to set your api token, that you can get fr
 
 ### Author Vals from VS Code
 
-![val demo](https://raw.githubusercontent.com/pomdtr/valtown-vscode/master/img/vals.png)
+![val demo](https://raw.githubusercontent.com/val-town/val-town-vscode/main/img/vals.png)
 
 ## Preview Web Endpoints
 
-![preview demo](https://raw.githubusercontent.com/pomdtr/valtown-vscode/master/img/preview.png)
+![preview demo](https://raw.githubusercontent.com/val-town/val-town-vscode/main/img/preview.png)
 
 ### Edit/Manage your Blobs
 
-![blob demo](https://raw.githubusercontent.com/pomdtr/valtown-vscode/master/img/blobs.png)
+![blob demo](https://raw.githubusercontent.com/val-town/val-town-vscode/main/img/blobs.png)
 
 ### Run SQLite Queries
 
-![sqlite demo](https://raw.githubusercontent.com/pomdtr/valtown-vscode/master/img/sqlite.png)
+![sqlite demo](https://raw.githubusercontent.com/val-town/val-town-vscode/main/img/sqlite.png)
+
+### Quick Import Vals
+
+![autocomplete demo](https://raw.githubusercontent.com/val-town/val-town-vscode/main/img/autocomplete.png)
 
 ## Sidebar Configuration
 

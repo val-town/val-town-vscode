@@ -353,6 +353,26 @@
 								"url": "https://api.val.town/v1/me/likes"
 							}
 						]
+					},
+					"valtown.autoImport.staticVersion": {
+						"type": "boolean",
+						"markdownDescription": "Use a static version when automatically importing vals, like this.\n\n| Option | Example |\n|--------|---------|\n| `false` | `import \"https://esm.town/v/steveKrouse/helloWorld\"` |\n| `true`  | `import \"https://esm.town/v/steveKrouse/helloWorld?v=14\"` |\n\nThis is useful for ensuring that your code doesn't break when the val is updated.",
+						"default": false
+					},
+					"valtown.autoImport.upgradeBehavior": {
+						"type": "string",
+						"markdownDescription": "What to do when a val which has already been imported is auto-imported again with a different version.\n\n| Option  | Description |\n|---------|-------------|\n| `prompt` | Prompt the user to upgrade the val. |\n| `upgrade` | Automatically upgrade the val. |\n| `nothing` | Do nothing. |",
+						"enum": [
+							"prompt",
+							"upgrade",
+							"nothing"
+						],
+						"default": "prompt"
+					},
+					"valtown.autoImport.showUpgradeNotifications": {
+						"type": "boolean",
+						"markdownDescription": "Show notifications when a val which has already been imported is auto-imported again with a different version.",
+						"default": true
 					}
 				}
 			}
@@ -714,7 +734,15 @@
 				"id": "valtown.privacy",
 				"label": "Set Privacy"
 			}
-		]
+		],
+		"completionItemProvider": {
+			"selector": [
+				{
+					"language": "typescriptreact",
+					"scheme": "vt+val"
+				}
+			]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run package",
