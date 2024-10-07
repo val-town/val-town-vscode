@@ -343,19 +343,14 @@
 						},
 						"default": [
 							{
-								"title": "Steve's Vals",
-								"icon": "account",
-								"url": "https://api.val.town/v1/users/${user:stevekrouse}/vals"
+								"title": "Home Vals",
+								"icon": "home",
+								"url": "https://api.val.town/v1/users/${user:me}/vals"
 							},
 							{
 								"title": "Liked Vals",
 								"icon": "heart",
 								"url": "https://api.val.town/v1/me/likes"
-							},
-							{
-								"title": "Home Vals",
-								"icon": "home",
-								"url": "https://api.val.town/v1/users/${user:me}/vals"
 							}
 						]
 					}
