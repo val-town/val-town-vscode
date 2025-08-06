@@ -1,9 +1,9 @@
+import ValTown from "@valtown/sdk";
 import * as vscode from "vscode";
-import { ValtownClient } from "../client";
 
-export function register(
+export function registerSqliteTextDocumentProvider(
   context: vscode.ExtensionContext,
-  client: ValtownClient
+  client: ValTown
 ) {
   context.subscriptions.push(
     vscode.workspace.registerTextDocumentContentProvider("vt+sqlite", {
@@ -15,7 +15,7 @@ export function register(
         }
 
         try {
-          const res = await client.execute(query);
+          const res = await client.sqlite.execute({ statement: query });
           return JSON.stringify(res, null, 2);
         } catch (e: any) {
           return e.message;

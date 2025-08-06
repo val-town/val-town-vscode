@@ -2,26 +2,19 @@
 
 import * as vscode from "vscode";
 
-import { registerValTreeView } from "./val/tree";
-import { registerBlobTreeView } from "./blob/tree";
-import { ValtownClient } from "./client";
-import { registerValFileSystemProvider } from "./val/fs";
-import { registerSqliteTreeView } from "./sqlite/tree";
+import ValTown from "@valtown/sdk";
 import { registerBlobFileSystemProvider } from "./blob/fs";
-import { loadToken } from "./secrets";
+import { registerBlobTreeView } from "./blob/tree";
 import { registerCommands } from "./commands";
-import { registerUriHandler } from "./uri";
-import * as sqliteDoc from "./sqlite/document";
-import * as definition from "./definition";
+import { loadToken, saveToken } from "./secrets";
+import { registerSqliteTextDocumentProvider } from "./sqlite/document";
+import { registerSqliteTreeView } from "./sqlite/tree";
+import { registerValFileSystemProvider } from "./val/fs";
+import { registerValTreeView } from "./val/tree";
 
 export async function activate(context: vscode.ExtensionContext) {
   // set output channel
-  const outputChannel = vscode.window.createOutputChannel("Val Town");
-  context.subscriptions.push(outputChannel);
 
-  const config = vscode.workspace.getConfiguration("valtown");
-  const endpoint = config.get<string>("endpoint", "https://api.val.town");
-  outputChannel.appendLine(`Using endpoint: ${endpoint}`);
 
   let token = await loadToken(context);
   if (token) {
@@ -32,30 +25,12 @@ export async function activate(context: vscode.ExtensionContext) {
     );
   }
 
-  const client = new ValtownClient(endpoint, token);
-  context.secrets.onDidChange(async (e) => {
-    if (e.key !== "valtown.token") {
-      return;
-    }
-
-    const token = await loadToken(context);
-    client.setToken(token);
-    await vscode.commands.executeCommand(
-      "setContext",
-      "valtown.loggedIn",
-      !!token,
-    );
-    await vscode.commands.executeCommand("valtown.refresh");
-    await vscode.commands.executeCommand("valtown.blob.refresh");
-  });
-
   vscode.workspace.onDidChangeConfiguration(async (e) => {
     if (!e.affectsConfiguration("valtown.endpoint")) {
       return;
     }
 
     const token = await loadToken(context);
-    client.setToken(token);
     await vscode.commands.executeCommand(
       "setContext",
       "valtown.ready",
@@ -64,21 +39,55 @@ export async function activate(context: vscode.ExtensionContext) {
     await vscode.commands.executeCommand("valtown.refresh");
   });
 
-  outputChannel.appendLine("Registering uri handler");
-  registerUriHandler(context, client);
-  outputChannel.appendLine("Registering tree view");
-  registerValTreeView(context, client);
-  registerBlobTreeView(context, client);
-  registerSqliteTreeView(context, client);
-  sqliteDoc.register(context, client);
-  registerSqliteTreeView;
-  outputChannel.appendLine("Registering file system provider");
-  registerBlobFileSystemProvider(context, client);
-  registerValFileSystemProvider(context, client);
-  definition.register(client, context);
-  outputChannel.appendLine("Registering commands");
-  registerCommands(context, client);
-  outputChannel.appendLine("ValTown extension activated");
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "valtown.setToken",
+      async (token?: string) => {
+        if (!token) {
+          token = await vscode.window.showInputBox({
+            prompt: "ValTown Token",
+            placeHolder: "Token",
+            validateInput: async (value) => {
+              if (!value) {
+                return "Token cannot be empty";
+              }
+            },
+          });
+
+          if (!token) {
+            return;
+          }
+        }
+
+        await saveToken(context, token);
+        init(context, token);
+      },
+    )
+  );
+
+  if (!token) {
+    return;
+  }
+
+  init(context, token);
 }
 
-export async function deactivate() {}
+function init(context: vscode.ExtensionContext, token: string) {
+  const config = vscode.workspace.getConfiguration("valtown");
+  const endpoint = config.get<string>("endpoint", "https://api.val.town");
+  const client = new ValTown({ bearerToken: token, baseURL: endpoint });
+
+  registerCommands(context);
+  registerBlobTreeView(context, client);
+  registerSqliteTreeView(context, client);
+  registerSqliteTextDocumentProvider(context, client);
+  registerValTreeView(context, client);
+  registerValFileSystemProvider(context, client);
+
+  const outputChannel = vscode.window.createOutputChannel("Val Town");
+  context.subscriptions.push(outputChannel);
+  outputChannel.appendLine("Registering file system provider");
+  registerBlobFileSystemProvider(context, new ValTown({ bearerToken: token }));
+}
+
+export async function deactivate() { }

@@ -1,90 +1,74 @@
-import { FullVal, ValtownClient } from "../client";
+import ValTown from "@valtown/sdk";
 import * as vscode from "vscode";
+
 
 export const FS_SCHEME = "vt+val";
 
+// uri: vt+val:/<author>/<val>[@version]/<filename>
+
 class ValFileSystemProvider implements vscode.FileSystemProvider {
-  constructor(private client: ValtownClient) {}
+  constructor(private client: ValTown) { }
 
   private _emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
   readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> =
     this._emitter.event;
 
-  async extractVal(uri: vscode.Uri): Promise<FullVal> {
-    const [author, filename] = uri.path.slice(1).split("/");
-    const name = filename.split(".")[0];
-    return this.client.resolveVal(author, name);
-  }
-
-  static extractVersion(uri: vscode.Uri) {
-    const match = uri.path.match(/@(\d+)/);
-    if (match) {
-      return parseInt(match[1]);
-    }
-  }
-
   async readFile(uri: vscode.Uri) {
-    const val = await this.extractVal(uri);
-    if (uri.path.endsWith(".md")) {
-      return new TextEncoder().encode(val.readme || "");
-    }
-    return new TextEncoder().encode(val.code || "");
+    const [author, name, ...parts] = uri.path.slice(1).split("/");
+    const filepath = parts.join("/");
+    const val = await this.client.alias.username.valName.retrieve(author, name);
+    const file = await this.client.vals.files.getContent(val.id, {
+      path: filepath,
+    })
+    return new TextEncoder().encode(await file.text())
   }
 
-  async delete(uri: vscode.Uri) {
-    const val = await this.extractVal(uri);
-    await this.client.deleteVal(val.id);
-    this._emitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
-    vscode.commands.executeCommand("valtown.refresh");
+  async delete(uri: vscode.Uri, options: { recursive: boolean }) {
+    vscode.window.showErrorMessage("Deleting files is not supported yet");
+    // const [author, name, ...parts] = uri.path.slice(1).split("/");
+    // const filepath = parts.join("/");
+    // const val = await this.client.alias.username.valName.retrieve(author, name);
+
+    // await this.client.vals.files.delete(val.id, { path: filepath, recursive: options.recursive });
+    // this._emitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
+    // vscode.commands.executeCommand("valtown.refresh");
+  }
+
+  async resolveVal(uri: vscode.Uri) {
+    const [author, name] = uri.path.slice(1).split("/");
+    return this.client.alias.username.valName.retrieve(author, name);
   }
 
   async rename(
-    oldUri: vscode.Uri,
-    newUri: vscode.Uri,
-    options: { readonly overwrite: boolean }
+    _oldUri: vscode.Uri,
+    _newUri: vscode.Uri,
+    _options: { readonly overwrite: boolean }
   ) {
-    const oldVal = await this.extractVal(oldUri);
-    const name = newUri.path.split("/").pop()?.replace(".tsx", "");
-    if (!name) {
-      vscode.window.showErrorMessage("Invalid name");
-      return;
-    }
-
-    await this.client.renameVal(oldVal.id, name);
-    this._emitter.fire([
-      { type: vscode.FileChangeType.Deleted, uri: oldUri },
-      { type: vscode.FileChangeType.Created, uri: newUri },
-    ]);
-    vscode.commands.executeCommand("valtown.refresh");
+    vscode.window.showErrorMessage("Renaming vals is not supported yet");
   }
 
   async stat(uri: vscode.Uri) {
-    if (uri.path.split("/").length < 3) {
-      return {
-        type: vscode.FileType.Directory,
-        ctime: 0,
-        mtime: 0,
-        size: 0,
-      };
+    const [author, name, ...parts] = uri.path.slice(1).split("/");
+    const filepath = parts.join("/");
+    const val = await this.client.alias.username.valName.retrieve(author, name);
+    const files = []
+    for await (const res of this.client.vals.files.retrieve(
+      val.id,
+      {
+        path: filepath,
+        recursive: false
+      }
+    )) {
+      files.push(res)
     }
 
-    try {
-      const val = await this.extractVal(uri);
-      const user = await this.client.user();
-
-      return {
-        type: vscode.FileType.File,
-        permissions:
-          val.author.id !== user.id
-            ? vscode.FilePermission.Readonly
-            : undefined,
-        ctime: new Date(val.createdAt).getTime(),
-        mtime: new Date(val.createdAt).getTime(),
-        size: new TextEncoder().encode(val.code || "").length,
-      };
-    } catch (_) {
-      throw vscode.FileSystemError.FileNotFound(uri);
-    }
+    return {
+      type: vscode.FileType.File,
+      permissions: vscode.FilePermission.Readonly,
+      ctime: new Date(val.createdAt).getTime(),
+      mtime: new Date(val.createdAt).getTime(),
+      size: 0
+    };
   }
 
   async writeFile(
@@ -92,13 +76,17 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
     content: Uint8Array,
     options: { readonly create: boolean; readonly overwrite: boolean }
   ) {
-    const val = await this.extractVal(uri);
-    if (uri.path.endsWith(".md")) {
-      await this.client.writeReadme(val.id, new TextDecoder().decode(content));
-      return;
-    }
-    await this.client.writeVal(val.id, new TextDecoder().decode(content));
-    vscode.commands.executeCommand("valtown.refresh");
+    vscode.window.showErrorMessage("Writing files is not supported yet");
+    // const [author, name, ...parts] = uri.path.slice(1).split("/");
+    // const filepath = parts.join("/");
+    // const val = await this.client.alias.username.valName.retrieve(author, name);
+
+    // await this.client.vals.files.update(val.id, {
+    //   path: filepath,
+    //   content: new TextDecoder().decode(content),
+    // })
+
+    // this._emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
   }
 
   watch(
@@ -108,33 +96,22 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
       readonly excludes: readonly string[];
     }
   ): vscode.Disposable {
-    return new vscode.Disposable(() => {});
+    return new vscode.Disposable(() => { });
   }
 
   createDirectory(uri: vscode.Uri): void | Thenable<void> {
-    vscode.window.showErrorMessage("Cannot create directories in ValTown");
+    vscode.window.showErrorMessage("Creating directories is not supported yet");
   }
 
   async readDirectory(uri: vscode.Uri) {
-    if (uri.path === "/") {
-      vscode.window.showErrorMessage("Cannot read root directory");
-      return [];
-    }
-
-    const username = uri.path.split("/").pop() || "";
-    const user = await this.client.resolveUser(username);
-
-    const vals = await this.client.paginate(`/users/${user.id}/vals`);
-    return vals.map(
-      (val) =>
-        [`${val.name}.tsx`, vscode.FileType.File] as [string, vscode.FileType]
-    );
+    vscode.window.showErrorMessage("Reading directories is not supported yet");
+    return []
   }
 }
 
 export function registerValFileSystemProvider(
   context: vscode.ExtensionContext,
-  client: ValtownClient
+  client: ValTown
 ) {
   const fs = new ValFileSystemProvider(client);
 

@@ -1,5 +1,5 @@
+import ValTown from "@valtown/sdk";
 import * as vscode from "vscode";
-import { ValtownClient } from "../client";
 
 function columnIcon(type: string) {
   switch (type.toLowerCase()) {
@@ -18,9 +18,8 @@ function columnIcon(type: string) {
 }
 
 export class SqliteTreeView
-  implements vscode.TreeDataProvider<vscode.TreeItem>
-{
-  constructor(private client: ValtownClient) {}
+  implements vscode.TreeDataProvider<vscode.TreeItem> {
+  constructor(private client: ValTown) { }
 
   private _onDidChangeTreeData: vscode.EventEmitter<
     vscode.TreeItem | undefined | null | void
@@ -33,14 +32,11 @@ export class SqliteTreeView
   }
 
   async getChildren(element: vscode.TreeItem | undefined) {
-    if (!this.client.authenticated) {
-      return [];
-    }
-
     if (!element) {
-      const { rows }: { rows: string[][] } = await this.client.execute(
-        `SELECT name FROM sqlite_schema WHERE type ='table' AND name NOT LIKE 'sqlite_%';`
-      );
+      const { rows } = await this.client.sqlite.execute({
+        statement:
+          `SELECT name FROM sqlite_schema WHERE type ='table' AND name NOT LIKE 'sqlite_%';`
+      }) as { rows: string[][] };
 
       return rows.map(([table]) => ({
         id: table,
@@ -51,9 +47,9 @@ export class SqliteTreeView
       }));
     }
 
-    const { rows }: { rows: string[][] } = await this.client.execute(
-      `PRAGMA table_info(${element.label});`
-    );
+    const { rows } = await this.client.sqlite.execute(
+      { statement: `PRAGMA table_info(${element.label});` }
+    ) as { rows: string[][] };
 
     return rows.map(([_, name, type]) => ({
       id: `${element.label}.${name}`,
@@ -74,7 +70,7 @@ export class SqliteTreeView
 
 export async function registerSqliteTreeView(
   context: vscode.ExtensionContext,
-  client: ValtownClient
+  client: ValTown
 ) {
   const tree = new SqliteTreeView(client);
   context.subscriptions.push(
@@ -130,7 +126,7 @@ export async function registerSqliteTreeView(
           return;
         }
 
-        await client.execute(`DROP TABLE ${table};`);
+        await client.sqlite.execute({ statement: `DROP TABLE ${table};` });
         tree.refresh();
       }
     )
