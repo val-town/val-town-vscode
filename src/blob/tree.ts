@@ -1,8 +1,8 @@
+import { ValTown } from "@valtown/sdk";
 import * as vscode from "vscode";
-import { ValtownClient } from "../client";
 
-export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
-  constructor(private client: ValtownClient) {}
+class BlobTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
+  constructor(private client: ValTown) { }
 
   private _onDidChangeTreeData: vscode.EventEmitter<
     vscode.TreeItem | undefined | null | void
@@ -15,12 +15,13 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
 
   async getChildren(_: vscode.TreeItem | undefined) {
-    const blobs = await this.client.listBlobs();
+    const blobs = await this.client.blobs.list();
+
     return blobs.map((blob) => ({
       id: blob.key,
       label: blob.key,
       contextValue: "blob",
-      description: `${blob.size / 1000} kb`,
+      description: blob.size ? `${blob.size / 1000} kb` : undefined,
       resourceUri: vscode.Uri.parse(`vt+blob:/${encodeURIComponent(blob.key)}`),
       iconPath: vscode.ThemeIcon.File,
       command: {
@@ -40,9 +41,9 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
 
 export async function registerBlobTreeView(
   context: vscode.ExtensionContext,
-  client: ValtownClient
+  client: ValTown
 ) {
-  const tree = new ValTreeView(client);
+  const tree = new BlobTreeView(client);
   context.subscriptions.push(
     vscode.window.createTreeView("valtown.blobs", {
       treeDataProvider: tree,

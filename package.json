@@ -2,7 +2,7 @@
 	"name": "valtown",
 	"displayName": "Val Town",
 	"description": "VS Code integration for val.town",
-	"version": "0.8.12",
+	"version": "1.0.0",
 	"publisher": "pomdtr",
 	"private": true,
 	"icon": "assets/icon.png",
@@ -10,7 +10,7 @@
 	"homepage": "https://val.town",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/pomdtr/val-town-vscode"
+		"url": "https://github.com/val-town/val-town-vscode"
 	},
 	"engines": {
 		"vscode": "^1.74.0"
@@ -37,16 +37,8 @@
 		"views": {
 			"valtown": [
 				{
-					"id": "valtown.tree",
+					"id": "valtown.vals",
 					"name": "Vals"
-				},
-				{
-					"id": "valtown.references",
-					"name": "References"
-				},
-				{
-					"id": "valtown.dependencies",
-					"name": "Dependencies"
 				},
 				{
 					"id": "valtown.blobs",
@@ -60,19 +52,9 @@
 		},
 		"viewsWelcome": [
 			{
-				"view": "valtown.tree",
+				"view": "valtown.vals",
 				"contents": "Set your Val Town token to use this extension.\n[Set Token](command:valtown.setToken)\n[API Tokens](https://www.val.town/settings/api)",
 				"when": "!valtown.loggedIn"
-			},
-			{
-				"view": "valtown.references",
-				"contents": "Open a val to see its references.",
-				"when": "resourceScheme != 'vt+val'"
-			},
-			{
-				"view": "valtown.dependencies",
-				"contents": "Open a val to see its dependencies.",
-				"when": "resourceScheme != 'vt+val'"
 			},
 			{
 				"view": "valtown.blobs",
@@ -87,118 +69,26 @@
 		],
 		"commands": [
 			{
-				"command": "valtown.createVal",
-				"title": "Create Val",
-				"category": "Val Town",
-				"icon": "$(plus)"
-			},
-			{
-				"command": "valtown.createValFromTemplate",
-				"title": "Create Val from Template",
-				"category": "Val Town",
-				"icon": "$(new-file)"
-			},
-			{
-				"command": "valtown.openPreview",
-				"title": "Open Preview",
-				"category": "Val Town",
-				"icon": "$(preview)"
-			},
-			{
-				"command": "valtown.openPreviewToSide",
-				"title": "Open Preview to the Side",
-				"category": "Val Town",
-				"icon": "$(open-preview)"
-			},
-			{
-				"command": "valtown.deleteVal",
-				"title": "Delete Val",
-				"category": "Val Town",
-				"icon": "$(trash)"
-			},
-			{
-				"command": "valtown.refresh",
-				"title": "Refresh View",
-				"category": "Val Town",
-				"icon": "$(refresh)"
-			},
-			{
-				"command": "valtown.rename",
-				"title": "Rename Val",
-				"category": "Val Town",
-				"icon": "$(edit)"
-			},
-			{
-				"command": "valtown.setPrivate",
-				"title": "Private",
-				"category": "Val Town"
-			},
-			{
-				"command": "valtown.setUnlisted",
-				"title": "Unlisted",
-				"category": "Val Town"
-			},
-			{
-				"command": "valtown.setPublic",
-				"title": "Public",
-				"category": "Val Town"
-			},
-			{
-				"command": "valtown.open",
-				"title": "Open Val",
-				"category": "Val Town"
-			},
-			{
 				"command": "valtown.blob.quickOpen",
 				"title": "Open Blob...",
 				"category": "Val Town"
 			},
 			{
-				"command": "copyValID",
-				"title": "Val ID",
-				"category": "Val Town"
-			},
-			{
-				"command": "valtown.copyModuleURL",
-				"title": "Module URL",
-				"category": "Val Town"
-			},
-			{
-				"command": "valtown.copyScriptTag",
-				"title": "Script Tag",
+				"command": "valtown.copyValID",
+				"title": "Copy ID",
 				"category": "Val Town"
 			},
 			{
 				"command": "valtown.copyValUrl",
-				"title": "Val URL",
+				"title": "Copy URL",
 				"category": "Val Town",
 				"icon": "$(link)"
 			},
 			{
-				"command": "valtown.copyEmbedUrl",
-				"title": "Embed URL",
-				"category": "Val Town"
-			},
-			{
-				"command": "valtown.copyEmailAddress",
-				"title": "Email Address",
-				"category": "Val Town"
-			},
-			{
-				"command": "valtown.copyHttpEndpoint",
-				"title": "HTTP Endpoint",
-				"category": "Val Town"
-			},
-			{
 				"command": "valtown.openValUrl",
-				"title": "Val URL",
+				"title": "Open in Browser",
 				"category": "Val Town",
 				"icon": "$(globe)"
-			},
-			{
-				"command": "valtown.openHttpEndpoint",
-				"title": "HTTP Endpoint",
-				"category": "Val Town"
 			},
 			{
 				"command": "valtown.setToken",
@@ -206,14 +96,14 @@
 				"title": "Set Token"
 			},
 			{
+				"command": "valtown.copyToken",
+				"category": "Val Town",
+				"title": "Copy Token"
+			},
+			{
 				"command": "valtown.clearToken",
 				"category": "Val Town",
 				"title": "Clear Token"
-			},
-			{
-				"command": "valtown.openValLogs",
-				"category": "Val Town",
-				"title": "Val Logs"
 			},
 			{
 				"command": "valtown.blob.refresh",
@@ -316,43 +206,6 @@
 						"type": "string",
 						"description": "The Val Town API endpoint to use.",
 						"default": "https://api.val.town"
-					},
-					"valtown.tree": {
-						"type": "array",
-						"description": "Val Tree.",
-						"items": {
-							"type": "object",
-							"additionalProperties": false,
-							"properties": {
-								"title": {
-									"type": "string",
-									"description": "The title of the val."
-								},
-								"icon": {
-									"type": "string",
-									"description": "The icon of the folder."
-								},
-								"url": {
-									"type": "string",
-									"description": "The url to fetch the vals from."
-								},
-								"items": {
-									"type": "array"
-								}
-							}
-						},
-						"default": [
-							{
-								"title": "Home Vals",
-								"icon": "home",
-								"url": "https://api.val.town/v1/users/${user:me}/vals"
-							},
-							{
-								"title": "Liked Vals",
-								"icon": "heart",
-								"url": "https://api.val.town/v1/me/likes"
-							}
-						]
 					}
 				}
 			}
@@ -360,55 +213,14 @@
 		"menus": {
 			"commandPalette": [
 				{
-					"command": "valtown.setToken",
-					"when": "!valtown.loggedIn"
+					"command": "valtown.setToken"
 				},
 				{
 					"command": "valtown.clearToken",
 					"when": "valtown.loggedIn"
 				},
 				{
-					"command": "valtown.open",
-					"when": "valtown.loggedIn"
-				},
-				{
-					"command": "valtown.createVal",
-					"when": "valtown.loggedIn"
-				},
-				{
-					"command": "valtown.createValFromTemplate",
-					"when": "valtown.loggedIn"
-				},
-				{
-					"command": "valtown.deleteVal",
-					"when": "false"
-				},
-				{
-					"command": "valtown.refresh",
-					"when": "false"
-				},
-				{
-					"command": "valtown.setPrivate",
-					"when": "false"
-				},
-				{
-					"command": "valtown.setUnlisted",
-					"when": "false"
-				},
-				{
-					"command": "valtown.setPublic",
-					"when": "false"
-				},
-				{
-					"command": "copyValID",
-					"when": "false"
-				},
-				{
-					"command": "valtown.copyModuleURL",
-					"when": "false"
-				},
-				{
-					"command": "valtown.copyScriptTag",
+					"command": "valtown.copyValID",
 					"when": "false"
 				},
 				{
@@ -416,27 +228,7 @@
 					"when": "false"
 				},
 				{
-					"command": "valtown.copyEmbedUrl",
-					"when": "false"
-				},
-				{
-					"command": "valtown.copyEmailAddress",
-					"when": "false"
-				},
-				{
-					"command": "valtown.copyHttpEndpoint",
-					"when": "false"
-				},
-				{
 					"command": "valtown.openValUrl",
-					"when": "false"
-				},
-				{
-					"command": "valtown.openHttpEndpoint",
-					"when": "false"
-				},
-				{
-					"command": "valtown.openValLogs",
 					"when": "false"
 				},
 				{
@@ -488,54 +280,11 @@
 					"when": "false"
 				}
 			],
-			"editor/title": [
-				{
-					"command": "valtown.openPreviewToSide",
-					"alt": "valtown.openPreview",
-					"group": "navigation@1",
-					"when": "resourceScheme == 'vt+val' && resourceLangId != markdown"
-				},
-				{
-					"command": "valtown.val.openReadme",
-					"group": "navigation@1",
-					"when": "resourceScheme == 'vt+val' && resourceLangId != markdown"
-				},
-				{
-					"command": "valtown.val.open",
-					"group": "navigation@1",
-					"when": "resourceScheme == 'vt+val' && resourceLangId == markdown"
-				},
-				{
-					"command": "valtown.openValUrl",
-					"group": "navigation@1",
-					"when": "resourceScheme == 'vt+val'"
-				},
-				{
-					"command": "valtown.sqlite.runQuery",
-					"group": "navigation@1",
-					"when": "editorLangId == 'sql'"
-				}
-			],
 			"view/title": [
-				{
-					"command": "valtown.createVal",
-					"group": "navigation@1",
-					"when": "view == valtown.tree && valtown.loggedIn"
-				},
-				{
-					"command": "valtown.createValFromTemplate",
-					"group": "navigation@2",
-					"when": "view == valtown.tree && valtown.loggedIn"
-				},
 				{
 					"command": "valtown.vals.config",
 					"group": "navigation@3",
-					"when": "view == valtown.tree && valtown.loggedIn"
-				},
-				{
-					"command": "valtown.refresh",
-					"group": "navigation@4",
-					"when": "view == valtown.tree && valtown.loggedIn"
+					"when": "view == valtown.vals && valtown.loggedIn"
 				},
 				{
 					"command": "valtown.blob.create",
@@ -565,28 +314,18 @@
 			],
 			"view/item/context": [
 				{
-					"command": "valtown.rename",
+					"command": "valtown.openValUrl",
 					"group": "navigation@1",
 					"when": "viewItem == val"
 				},
 				{
-					"submenu": "valtown.submenus.copy",
+					"command": "valtown.copyValUrl",
 					"group": "navigation@2",
 					"when": "viewItem == val"
 				},
 				{
-					"submenu": "valtown.submenus.open",
+					"command": "valtown.copyValID",
 					"group": "navigation@3",
-					"when": "viewItem == val"
-				},
-				{
-					"submenu": "valtown.submenus.privacy",
-					"group": "navigation@4",
-					"when": "viewItem == val"
-				},
-				{
-					"command": "valtown.deleteVal",
-					"group": "navigation@6",
 					"when": "viewItem == val"
 				},
 				{
@@ -625,77 +364,8 @@
 					"when": "view == valtown.sqlite && viewItem == column"
 				}
 			],
-			"valtown.submenus.privacy": [
-				{
-					"command": "valtown.setPrivate",
-					"group": "navigation@1",
-					"when": "viewItem == val"
-				},
-				{
-					"command": "valtown.setUnlisted",
-					"group": "navigation@2",
-					"when": "viewItem == val"
-				},
-				{
-					"command": "valtown.setPublic",
-					"group": "navigation@3",
-					"when": "viewItem == val"
-				}
-			],
-			"valtown.submenus.open": [
-				{
-					"command": "valtown.openValUrl",
-					"group": "navigation@1",
-					"when": "viewItem == val"
-				},
-				{
-					"command": "valtown.openHttpEndpoint",
-					"group": "navigation@2",
-					"when": "viewItem == val"
-				},
-				{
-					"command": "valtown.openValLogs",
-					"group": "navigation@3",
-					"when": "viewItem == val"
-				}
-			],
-			"valtown.submenus.copy": [
-				{
-					"command": "valtown.copyValUrl",
-					"group": "navigation@1",
-					"when": "viewItem == val"
-				},
-				{
-					"command": "valtown.copyModuleURL",
-					"group": "navigation@2",
-					"when": "viewItem == val"
-				},
-				{
-					"command": "valtown.copyScriptTag",
-					"group": "navigation@3",
-					"when": "viewItem == val"
-				},
-				{
-					"command": "valtown.copyEmbedUrl",
-					"group": "navigation@4",
-					"when": "viewItem == val"
-				},
-				{
-					"command": "copyValID",
-					"group": "navigation@5",
-					"when": "viewItem == val"
-				},
-				{
-					"command": "valtown.copyHttpEndpoint",
-					"group": "navigation@6",
-					"when": "viewItem == val"
-				},
-				{
-					"command": "valtown.copyEmailAddress",
-					"group": "navigation@7",
-					"when": "viewItem == val"
-				}
-			]
+			"valtown.submenus.open": [],
+			"valtown.submenus.copy": []
 		},
 		"submenus": [
 			{
@@ -733,5 +403,8 @@
 		"typescript": "^5.2.2",
 		"webpack": "^5.89.0",
 		"webpack-cli": "^5.1.4"
+	},
+	"dependencies": {
+		"@valtown/sdk": "^1.9.0"
 	}
 }
