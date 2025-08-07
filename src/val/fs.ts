@@ -64,7 +64,6 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
 
     return {
       type: vscode.FileType.File,
-      permissions: vscode.FilePermission.Readonly,
       ctime: new Date(val.createdAt).getTime(),
       mtime: new Date(val.createdAt).getTime(),
       size: 0
@@ -76,17 +75,16 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
     content: Uint8Array,
     options: { readonly create: boolean; readonly overwrite: boolean }
   ) {
-    vscode.window.showErrorMessage("Writing files is not supported yet");
-    // const [author, name, ...parts] = uri.path.slice(1).split("/");
-    // const filepath = parts.join("/");
-    // const val = await this.client.alias.username.valName.retrieve(author, name);
+    const [author, name, ...parts] = uri.path.slice(1).split("/");
+    const filepath = parts.join("/");
+    const val = await this.client.alias.username.valName.retrieve(author, name);
 
-    // await this.client.vals.files.update(val.id, {
-    //   path: filepath,
-    //   content: new TextDecoder().decode(content),
-    // })
+    await this.client.vals.files.update(val.id, {
+      path: filepath,
+      content: new TextDecoder().decode(content),
+    })
 
-    // this._emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
+    this._emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
   }
 
   watch(
