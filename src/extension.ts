@@ -13,8 +13,6 @@ import { registerValFileSystemProvider } from "./val/fs";
 import { registerValTreeView } from "./val/tree";
 
 export async function activate(context: vscode.ExtensionContext) {
-  // set output channel
-
 
   let token = await loadToken(context);
   if (token) {

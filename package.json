@@ -2,7 +2,7 @@
 	"name": "valtown",
 	"displayName": "Val Town",
 	"description": "VS Code integration for val.town",
-	"version": "0.9.0",
+	"version": "0.9.1",
 	"publisher": "pomdtr",
 	"private": true,
 	"icon": "assets/icon.png",
@@ -179,12 +179,6 @@
 				"title": "Drop Table"
 			},
 			{
-				"command": "valtown.vals.config",
-				"category": "Val Town",
-				"title": "Configure Vals Folders",
-				"icon": "$(gear)"
-			},
-			{
 				"command": "valtown.val.openReadme",
 				"category": "Val Town",
 				"title": "Open Val Readme",
@@ -195,6 +189,11 @@
 				"category": "Val Town",
 				"title": "Open Val",
 				"icon": "$(file-code)"
+			},
+			{
+				"command": "valtown.vals.openAsWorkspace",
+				"title": "Open as Workspace",
+				"when": "false"
 			}
 		],
 		"configuration": [
@@ -268,24 +267,19 @@
 					"when": "false"
 				},
 				{
-					"command": "valtown.vals.config",
-					"when": "false"
-				},
-				{
 					"command": "valtown.val.openReadme",
 					"when": "false"
 				},
 				{
 					"command": "valtown.val.open",
 					"when": "false"
+				},
+				{
+					"command": "valtown.vals.openAsWorkspace",
+					"when": "false"
 				}
 			],
 			"view/title": [
-				{
-					"command": "valtown.vals.config",
-					"group": "navigation@3",
-					"when": "view == valtown.vals && valtown.loggedIn"
-				},
 				{
 					"command": "valtown.blob.create",
 					"group": "navigation@1",
@@ -326,6 +320,11 @@
 				{
 					"command": "valtown.copyValID",
 					"group": "navigation@3",
+					"when": "viewItem == val"
+				},
+				{
+					"command": "valtown.vals.openAsWorkspace",
+					"group": "navigation@4",
 					"when": "viewItem == val"
 				},
 				{

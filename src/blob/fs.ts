@@ -101,13 +101,8 @@ class BlobFileSystemProvider implements vscode.FileSystemProvider {
     }
 
     const key = encodeURIComponent(uri.path.slice(1));
-
-    await fetch(new URL(`/v1/blob/${key}`, this.client.baseURL), {
-      method: 'POST',
+    await this.client.post(`/v1/blob/${key}`, {
       body: content,
-      headers: {
-        "Authorization": `Bearer ${this.client.bearerToken}`,
-      }
     })
 
     await this._emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);

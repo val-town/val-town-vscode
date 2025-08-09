@@ -41,20 +41,24 @@ export class ValTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
         collapsibleState: file.type === "directory" ?
           vscode.TreeItemCollapsibleState.Collapsed :
           vscode.TreeItemCollapsibleState.None,
+        description: file.type !== "directory" ? file.type : undefined,
         label: file.name,
-        resourceUri: vscode.Uri.parse(`vt+val:/${element.val.author.username}/${element.val.name}/${file.path}`),
+        resourceUri: vscode.Uri.parse(`vt+val://${element.val.id}/${file.path}`),
         val: element.val,
         file: file,
         contextValue: file.type === "directory" ? "val-directory" : "val-file",
         command: file.type !== "directory" ? {
           command: "vscode.open",
           title: "Open File",
-          arguments: [`vt+val:/${element.val.author.username}/${element.val.name}/${file.path}`],
+          arguments: [`vt+val://${element.val.id}/${file.path}`],
         } : undefined,
       }) as vscode.TreeItem)
     }
 
-    const { data: vals } = await this.client.me.vals.list({ limit: 100 });
+    const vals: ValTown.Val[] = []
+    for await (const res of this.client.me.vals.list({ limit: 100 })) {
+      vals.push(res)
+    }
 
     return vals.map((val) => ({
       val: val,
@@ -98,11 +102,15 @@ export async function registerValTreeView(
     vscode.commands.registerCommand("valtown.vals.refresh", async () => {
       valTree.refresh();
     }),
-    vscode.commands.registerCommand("valtown.vals.config", async () => {
+    vscode.commands.registerCommand("valtown.vals.openAsWorkspace", async (arg) => {
+      const { id } = arg.val
+      const uri = vscode.Uri.parse(`vt+val://${id}/`);
+
       await vscode.commands.executeCommand(
-        "workbench.action.openSettings",
-        "valtown.vals",
+        "vscode.openFolder",
+        uri,
+        { forceNewWindow: true },
       );
-    }),
+    })
   );
 }
