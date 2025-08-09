@@ -54,10 +54,11 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
   async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
     const files = []
     if (uri.path === "/") {
+      const val = await this.client.vals.retrieve(uri.authority)
       return {
         type: vscode.FileType.Directory,
-        ctime: Date.now(),
-        mtime: Date.now(),
+        ctime: new Date(val.createdAt).getTime(),
+        mtime: new Date(val.createdAt).getTime(),
         size: 0,
       };
     }
@@ -72,19 +73,17 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
       files.push(res)
     }
 
-    if (files.length > 1) {
-      return {
-        type: vscode.FileType.Directory,
-        ctime: Date.now(),
-        mtime: Date.now(),
-        size: 0
-      };
+    const file = files.find((file) => file.path === uri.path.slice(1));
+    if (!file) {
+      throw vscode.FileSystemError.FileNotFound(uri);
     }
 
     return {
-      type: vscode.FileType.File,
-      ctime: Date.now(),
-      mtime: Date.now(),
+      type: file.type === "directory"
+        ? vscode.FileType.Directory
+        : vscode.FileType.File,
+      ctime: new Date(file.updatedAt).getTime(),
+      mtime: new Date(file.updatedAt).getTime(),
       size: 0
     };
   }
