@@ -63,29 +63,45 @@ class ValFileSystemProvider implements vscode.FileSystemProvider {
       };
     }
 
-    for await (const res of this.client.vals.files.retrieve(
-      uri.authority,
-      {
-        path: uri.path.slice(1),
-        recursive: false
+    try {
+      for await (const res of this.client.vals.files.retrieve(
+        uri.authority,
+        {
+          path: uri.path.slice(1),
+          recursive: false
+        }
+      )) {
+        files.push(res)
       }
-    )) {
-      files.push(res)
-    }
 
-    const file = files.find((file) => file.path === uri.path.slice(1));
-    if (!file) {
-      throw vscode.FileSystemError.FileNotFound(uri);
-    }
+      const file = files.find((file) => file.path === uri.path.slice(1));
 
-    return {
-      type: file.type === "directory"
-        ? vscode.FileType.Directory
-        : vscode.FileType.File,
-      ctime: new Date(file.updatedAt).getTime(),
-      mtime: new Date(file.updatedAt).getTime(),
-      size: 0
-    };
+      if (!file) {
+        return {
+          type: vscode.FileType.Directory,
+          ctime: new Date().getTime(),
+          mtime: new Date().getTime(),
+          size: 0,
+        }
+      }
+
+      return {
+        type: vscode.FileType.File,
+        ctime: new Date(file.updatedAt).getTime(),
+        mtime: new Date(file.updatedAt).getTime(),
+        size: 0
+      };
+    } catch (error) {
+      if (error instanceof ValTown.APIError) {
+        if (error.status === 404) {
+          throw vscode.FileSystemError.FileNotFound(uri);
+        }
+
+        throw vscode.FileSystemError.Unavailable(uri)
+      } else {
+        throw vscode.FileSystemError.Unavailable(uri);
+      }
+    }
   }
 
   async writeFile(
